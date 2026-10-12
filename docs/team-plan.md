@@ -7,7 +7,7 @@ Nhóm gồm ba người kỹ thuật và một người quản lý Facebook Page
 | Vai trò | Nhánh | Repository |
 |---|---|---|
 | Frontend Web Admin | `feature/admin-frontend` | `web-admin-analytics` |
-| Backend + Database — Thắng | `feature/admin-analytics-api` | `TroOi-Project` |
+| Backend + Database — Thắng | `feature/admin-backend-database` | `web-admin-analytics` |
 | Data + Integration + QA/DevOps | `feature/analytics-integration` | Các repo liên quan |
 | Page Operations | `docs/page-operations` | `web-admin-analytics` |
 
@@ -85,12 +85,12 @@ Lưu số liệu thủ công an toàn, có validation/audit và cung cấp API c
 
 ### Backend API
 
-- Duy trì `GET /api/v1/admin/analytics/overview` hiện có.
+- Duy trì CRUD API manual entries trong repo Admin.
 - Xây CRUD API cho manual entries theo contract.
 - Backend tự lấy actor từ authenticated principal; không tin `createdBy` do client gửi.
 - Validate số không âm, ngày, allowlist, độ dài note và duplicate rule.
 - Trả `400` cho payload sai, `401` cho token sai/thiếu, `403` cho non-admin và `404` cho entry không tồn tại.
-- Aggregate tại PostgreSQL; không tải toàn bộ row lên memory để đếm.
+- Xây summary aggregate tại PostgreSQL sau khi chốt quy tắc period; không tải toàn bộ row lên memory để đếm.
 - Chỉ dùng bản ghi được phép trong summary; không trộn `DEMO` vào số liệu thật.
 - Không log token, credential hoặc PII không cần thiết.
 - Cập nhật Swagger/OpenAPI cùng lúc với code.

@@ -1,88 +1,82 @@
-# Chạy local và kết nối hai repository
+# Chạy local — Backend và Database độc lập
 
-## Nguyên tắc
-
-Admin frontend và Backend/App là hai repository độc lập:
+Toàn bộ Admin MVP nằm trong repo `web-admin-analytics`:
 
 ```text
-web-admin-analytics  --HTTP-->  TroOi-Project  --> PostgreSQL
+web-admin-analytics/
+├─ backend/              Node.js + TypeScript API
+├─ database/migrations/  PostgreSQL schema
+├─ compose.yml           PostgreSQL local
+└─ docs/
 ```
 
-Không copy `src`, migrations, database password hoặc service credential từ `TroOi-Project` vào frontend.
+`TroOi-Project` chỉ dùng để tham khảo dữ liệu/schema được phép. Không commit code Admin vào repo đó, không copy toàn bộ `src` và không kết nối database production.
 
-## Thư mục tham khảo trên Windows
+## Yêu cầu
 
-```text
-T:\exe2\git\web-admin-analytics
-T:\exe2\git\TroOi-Project-admin-analytics
-```
+- Node.js 22 trở lên.
+- Docker Desktop.
+- PowerShell/Windows Terminal; VS Code chỉ là tùy chọn để xem/sửa file.
 
-Nếu máy đã có hai thư mục này thì không clone lại. Nếu chưa có, clone từng repository vào hai thư mục riêng và checkout đúng nhánh được giao.
-
-## Backend + Database
-
-Nhánh Backend Analytics:
-
-```text
-feature/admin-analytics-api
-```
-
-Các biến local tối thiểu:
-
-```env
-PORT=3100
-DATABASE_URL=postgresql://trooi:trooi_local@localhost:55432/trooi_test
-ADMIN_USER_IDS=<internal-user-uuid>
-GOOGLE_CLIENT_ID=<google-oauth-client-id>
-```
-
-Không commit file `.env` thật. `trooi_test` dùng cho kiểm thử; không reset `trooi_dev`.
-
-Lệnh PowerShell:
+## Khởi động PostgreSQL
 
 ```powershell
-cd T:\exe2\git\TroOi-Project-admin-analytics
-pnpm install
-$env:DATABASE_URL='postgresql://trooi:trooi_local@localhost:55432/trooi_test'
-$env:PORT='3100'
-pnpm exec tsx scripts/database/migrate.ts up
-pnpm build
-pnpm start
+cd T:\exe2\git\web-admin-analytics
+docker compose up -d postgres
+docker compose ps
 ```
 
-Địa chỉ kiểm tra:
+PostgreSQL Admin chạy riêng trên cổng `55433`. Migration trong `database/migrations` được áp dụng khi volume được tạo lần đầu.
 
-- Health: `http://localhost:3100/api/v1/health`
-- Swagger: `http://localhost:3100/docs`
-- Analytics: `http://localhost:3100/api/v1/admin/analytics/overview`
+Không chạy `docker compose down -v` nếu muốn giữ dữ liệu; tham số `-v` xóa volume database.
 
-Analytics thiếu token phải trả `401`. User đăng nhập hợp lệ nhưng không thuộc `ADMIN_USER_IDS` phải trả `403`.
+## Build và test Backend
 
-## Admin frontend
+```powershell
+cd T:\exe2\git\web-admin-analytics\backend
+npm install
+npm run typecheck
+npm test
+npm run build
+```
 
-Frontend dùng:
+Biến môi trường local:
 
 ```env
-VITE_API_BASE_URL=http://localhost:3100/api/v1
+PORT=3200
+DATABASE_URL=postgresql://admin_analytics:admin_analytics_local@localhost:55433/admin_analytics
+ADMIN_API_TOKEN=<token-local-dai-it-nhat-24-ky-tu>
+ADMIN_USER_ID=00000000-0000-4000-8000-000000000001
 ```
 
-API client gọi đường dẫn tương đối:
+Không commit `.env` hoặc token thật. `ADMIN_API_TOKEN` chỉ là cơ chế local MVP; phải thay bằng Google/OIDC verification trước public deploy.
+
+## API hiện có
 
 ```text
-/admin/analytics/overview
+GET   http://localhost:3200/api/v1/health
+POST  http://localhost:3200/api/v1/admin/statistics/entries
+GET   http://localhost:3200/api/v1/admin/statistics/entries
+GET   http://localhost:3200/api/v1/admin/statistics/entries/:id
+PATCH http://localhost:3200/api/v1/admin/statistics/entries/:id
 ```
 
-Frontend không được gọi PostgreSQL, không chứa Google/Meta service secret và phải hiển thị `payingUsers: null` thành **Chưa xác định**.
-
-Trong MVP nhập thủ công, frontend sẽ gọi thêm `/admin/statistics/entries` sau khi Backend triển khai contract. Không hard-code dữ liệu thay cho API trong bản bàn giao.
-
-## Trạng thái đã kiểm chứng
+## Bằng chứng runtime hiện tại
 
 - PostgreSQL container healthy.
-- Sáu migrations đã chạy trên `trooi_test`.
-- Backend build thành công.
-- Health và Swagger trả `200`.
-- Analytics không có token trả `401`.
-- Unit, HTTP và PostgreSQL integration tests của Admin Analytics pass.
+- Migration tạo bảng, constraints và indexes thành công.
+- Typecheck, 2 validation tests và build pass.
+- Health trả `200`.
+- Thiếu token trả `401`.
+- Tạo entry trả `201`, list đọc lại được entry.
+- Tạo trùng cùng metric/source/scope/period/timezone trả `409`.
 
-Google login thật và `ADMIN_USER_IDS` thật là bước cấu hình môi trường tiếp theo; không gửi token trong chat hoặc commit vào repository.
+## Frontend sau này
+
+Frontend cấu hình:
+
+```env
+VITE_API_BASE_URL=http://localhost:3200/api/v1
+```
+
+Frontend gọi `/admin/statistics/entries`, không truy cập PostgreSQL và không hard-code KPI values trong bản bàn giao.
