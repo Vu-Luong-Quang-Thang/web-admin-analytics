@@ -2,8 +2,8 @@
 
 ## Trạng thái
 
-- Database Overview bên dưới đã triển khai.
-- Manual Entry API là contract dự kiến cho MVP mới; chưa được coi là có sẵn cho tới khi Swagger và integration tests pass.
+- Manual Entry CRUD đã triển khai bước đầu trên nhánh `feature/admin-backend-database`.
+- Summary và Google/OIDC authentication chưa hoàn thành.
 
 ## Query chung dự kiến
 
@@ -13,15 +13,7 @@ from=YYYY-MM-DD&to=YYYY-MM-DD&timezone=Asia/Ho_Chi_Minh
 
 Endpoint snapshot hiện tại chưa nhận các query này. Khi triển khai bộ lọc, Backend phải validate ngày, `from <= to`, timezone cho phép và giới hạn khoảng truy vấn.
 
-## Endpoint hiện đã triển khai
-
-```text
-GET /api/v1/admin/analytics/overview
-```
-
-Các KPI Landing, App và Marketing sẽ đi qua Manual Entry API trong MVP; không tạo endpoint tự động theo từng nguồn ở giai đoạn này.
-
-## Business Summary
+## Business Summary cũ — không dùng trong backend độc lập
 
 ```http
 GET /api/v1/admin/analytics/overview
@@ -53,7 +45,9 @@ Quy tắc:
 - Database rỗng trả các count khả dụng bằng 0; KPI payer vẫn trả `null`.
 - Không có `currency` vì Summary không trả giá trị tiền.
 
-## Manual Entry API dự kiến
+Contract Overview dưới đây thuộc nhánh thử nghiệm trước trong `TroOi-Project` và không phải endpoint của backend Admin độc lập. Giữ lại để tham khảo quy tắc payer; không để frontend mới phụ thuộc endpoint này.
+
+## Manual Entry API hiện có
 
 ```text
 POST  /api/v1/admin/statistics/entries

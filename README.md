@@ -10,11 +10,11 @@ Người phụ trách mở dashboard nguồn
               |
               | đọc và đối soát số liệu
               v
-Form nhập liệu trên web-admin-analytics
+web-admin-analytics/frontend (dự kiến)
               |
-              | HTTPS + Bearer token
+              | HTTP + Bearer token
               v
-TroOi-Project / NestJS Backend
+web-admin-analytics/backend
               |
               | validate + audit
               v
@@ -26,19 +26,20 @@ Dashboard đọc API và hiển thị
 
 Frontend không kết nối trực tiếp PostgreSQL. Không copy thư mục `src` giữa hai repository và không hard-code KPI vào giao diện.
 
-## Hai repository
+## Repository
 
-- `web-admin-analytics`: giao diện nhập liệu, danh sách bản ghi và dashboard.
-- `TroOi-Project`: authentication, authorization, validation, API và PostgreSQL.
+- `web-admin-analytics/backend`: API, validation, audit và database access.
+- `web-admin-analytics/database`: migration PostgreSQL riêng của Admin.
+- Frontend Admin sẽ nằm trong repo này trên nhánh `feature/admin-frontend`.
 
-`TroOi-Landing-Page`, GA4, Firebase, Meta Business Suite và Store Console chỉ là nơi người phụ trách đọc số liệu gốc trong MVP này. Tích hợp API tự động được hoãn.
+`TroOi-Project` chỉ được clone để tham khảo cấu trúc/dữ liệu được phép; không commit code Admin vào repo đó và không copy toàn bộ `src`. `TroOi-Landing-Page`, GA4, Firebase, Meta Business Suite và Store Console chỉ là nơi đọc số liệu gốc.
 
 ## Phân chia công việc
 
 | Vai trò | Nhánh | Trách nhiệm chính |
 |---|---|---|
 | Frontend Web Admin | `feature/admin-frontend` | Form nhập liệu, lịch sử, dashboard và API client |
-| Backend + Database (Thắng) | `feature/admin-analytics-api` trong `TroOi-Project` | Migration, CRUD API, validation, auth và audit |
+| Backend + Database (Thắng) | `feature/admin-backend-database` | Migration, CRUD API, validation, auth và audit |
 | Data + QA/DevOps | `feature/analytics-integration` | KPI catalog, dataset, đối soát, CI và E2E |
 | Page Operations | `docs/page-operations` | Lấy số Meta, ghi nguồn và xác nhận kết quả |
 | Tài liệu chung | `root/docs` | Contract và quyết định đã được nhóm duyệt |
@@ -54,10 +55,9 @@ Chi tiết từng đầu việc, bàn giao và tiêu chí nghiệm thu nằm tro
 - Marketing: reach, impressions, clicks, spend.
 - Có thể nhập dữ liệu mẫu, nhưng bắt buộc gắn trạng thái `DEMO`.
 
-### Tự động từ database app
+### Dữ liệu từ app gốc
 
-- `totalAccounts` và `successfulPayments` tiếp tục đọc từ PostgreSQL khi dữ liệu đáng tin cậy.
-- `payingUsers` và `conversionRate` vẫn là `null` cho tới khi nhóm chốt quy tắc payer canonical.
+Trong MVP độc lập, không kết nối trực tiếp database TroOi. Accounts/payments chỉ được import thủ công hoặc dùng dataset đã loại dữ liệu nhạy cảm sau khi nhóm chốt quy tắc. Không trình bày dữ liệu tham khảo là dữ liệu live.
 
 ## Trạng thái bản ghi thủ công
 
@@ -84,23 +84,16 @@ updatedAt       thời điểm sửa gần nhất
 
 ## API
 
-Đã triển khai:
-
-```http
-GET /api/v1/admin/analytics/overview
-```
-
-Dự kiến bổ sung cho nhập thủ công:
+Đã triển khai trên nhánh `feature/admin-backend-database`:
 
 ```http
 POST  /api/v1/admin/statistics/entries
 GET   /api/v1/admin/statistics/entries
 GET   /api/v1/admin/statistics/entries/:id
 PATCH /api/v1/admin/statistics/entries/:id
-GET   /api/v1/admin/statistics/summary
 ```
 
-Đây là contract dự kiến; chưa được coi là đã triển khai cho tới khi backend, OpenAPI và integration tests cùng hoàn thành.
+Summary/dashboard aggregate và Google/OIDC login là bước tiếp theo. Bearer token hiện tại chỉ dành cho local MVP, không được dùng để public deploy.
 
 ## Validation bắt buộc
 
