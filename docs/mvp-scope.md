@@ -9,6 +9,8 @@ Admin đăng nhập an toàn và xem dữ liệu thật của bốn nhóm:
 3. Business: tổng tài khoản, paying users, successful payments và conversion rate.
 4. Marketing: reach, impressions, clicks và fanpage/campaign.
 
+Đây là phạm vi đích. Trạng thái hiện tại mới có Overview database-backed; GA4, Firebase, Meta và Store chưa được coi là đã kết nối.
+
 ## Bắt buộc
 
 - Frontend React + TypeScript + Vite tách khỏi Landing Page.

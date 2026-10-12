@@ -99,7 +99,7 @@ Người quản lý Page không cần viết code. Nhánh này chỉ chứa tài
 Phần này do Thắng thực hiện trên nhánh `feature/admin-analytics-api`, không merge code backend vào repo frontend.
 
 ```http
-GET /api/admin/analytics/overview
+GET /api/v1/admin/analytics/overview
 Authorization: Bearer <google-id-token>
 ```
 
@@ -119,6 +119,15 @@ Authorization: Bearer <google-id-token>
 ```
 
 `paymentClaimSubmitters` và `gatewayCheckoutCreators` là chỉ số mô tả hành vi, không phải số payer đã xác minh. Nhóm phải chốt quy tắc payer trước khi bật `payingUsers` và `conversionRate`.
+
+### Chạy local hiện tại
+
+- Admin frontend: repo `web-admin-analytics`.
+- Backend/database: clone hoặc checkout riêng repo `TroOi-Project`, nhánh `feature/admin-analytics-api`.
+- Không copy thư mục `src` giữa hai repo.
+- Backend local đã được kiểm chứng ở `http://localhost:3100/api/v1`; Swagger ở `http://localhost:3100/docs`.
+- Frontend cấu hình `VITE_API_BASE_URL=http://localhost:3100/api/v1` và gọi `/admin/analytics/overview`.
+- Xem `docs/local-development.md` để chạy từng bước.
 
 ## Thứ tự tích hợp
 
@@ -144,3 +153,4 @@ Authorization: Bearer <google-id-token>
 - `docs/statistics-api-contract.md`: contract giữa frontend và backend.
 - `docs/team-plan.md`: kế hoạch toàn bộ công việc.
 - `docs/data-sources.md`: nguồn dữ liệu và giới hạn.
+- `docs/local-development.md`: clone/build/chạy Backend + Database và kết nối Admin frontend.

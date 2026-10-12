@@ -9,7 +9,7 @@ Nhóm gồm ba người kỹ thuật và một người quản lý Facebook Fanp
 | Frontend Web Admin | Thành viên Frontend | `feature/admin-frontend` |
 | Backend Analytics + Database | Thắng | `feature/admin-analytics-api` |
 | Tracking + Integration + QA/DevOps | Thành viên kỹ thuật còn lại | `feature/analytics-integration` |
-| Fanpage + Campaign Operations | Người quản lý Page | Không bắt buộc code/branch |
+| Fanpage + Campaign Operations | Người quản lý Page | `docs/page-operations` |
 
 Người quản lý Page không phải là developer, nhưng phải cung cấp quyền, thông tin campaign và xác nhận số liệu Meta.
 
@@ -54,6 +54,8 @@ Repository: `web-admin-analytics`
 
 Repository: `TroOi-Project`
 
+Nhánh: `feature/admin-analytics-api`. Backend/database được clone hoặc checkout riêng; không copy `src` vào `web-admin-analytics`.
+
 ### Authentication và authorization
 
 - Khảo sát luồng identity hiện tại.
@@ -73,7 +75,7 @@ Repository: `TroOi-Project`
 
 ### Analytics API
 
-- Tạo Analytics module theo `statistics-api-contract.md`.
+- Duy trì endpoint hiện có `GET /api/v1/admin/analytics/overview` theo `statistics-api-contract.md`.
 - Validate date range, timezone và giới hạn khoảng truy vấn.
 - Tạo endpoint Overview, Landing, App, Users/Revenue, Marketing và Sources khi dữ liệu sẵn sàng.
 - Viết adapter phía server cho GA4, Firebase, Meta và Store; secret chỉ ở Backend.

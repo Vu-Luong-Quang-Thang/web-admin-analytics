@@ -1,31 +1,25 @@
 # Statistics API Contract
 
-## Query chung
+## Query chung dự kiến
 
 ```text
 from=YYYY-MM-DD&to=YYYY-MM-DD&timezone=Asia/Ho_Chi_Minh
 ```
 
-Backend validate ngày, `from <= to`, timezone cho phép và giới hạn khoảng truy vấn.
+Endpoint snapshot hiện tại chưa nhận các query này. Khi triển khai bộ lọc, Backend phải validate ngày, `from <= to`, timezone cho phép và giới hạn khoảng truy vấn.
 
-## Endpoints
+## Endpoint hiện đã triển khai
 
 ```text
-GET /api/admin/analytics/overview
-GET /api/admin/analytics/landing
-GET /api/admin/analytics/app
-GET /api/admin/analytics/users
-GET /api/admin/analytics/revenue
-GET /api/admin/analytics/marketing
-GET /api/admin/analytics/sources
+GET /api/v1/admin/analytics/overview
 ```
 
-Không tạo endpoint cho nguồn chưa có nhu cầu hiển thị. `overview` tổng hợp chỉ các KPI đã chốt.
+Các endpoint Landing, App, Marketing và Sources mới là kế hoạch; chưa được xem là API hiện có cho tới khi có nguồn thật, adapter và test.
 
 ## Business Summary
 
 ```http
-GET /api/admin/analytics/overview
+GET /api/v1/admin/analytics/overview
 Authorization: Bearer <verified-id-token>
 ```
 
@@ -40,14 +34,7 @@ Authorization: Bearer <verified-id-token>
   "gatewayCheckoutCreators": 1,
   "conversionRate": null,
   "payingUsersStatus": "UNAVAILABLE_POLICY_OPEN",
-  "generatedAt": "2026-10-12T04:00:00.000Z",
-  "sources": {
-    "database": { "status": "CONNECTED", "updatedAt": "2026-10-12T04:00:00.000Z" },
-    "ga4": { "status": "CONNECTED", "updatedAt": "2026-10-12T03:50:00.000Z" },
-    "firebase": { "status": "CONNECTED", "updatedAt": "2026-10-12T03:50:00.000Z" },
-    "meta": { "status": "NOT_CONNECTED", "updatedAt": null },
-    "store": { "status": "NOT_AVAILABLE", "updatedAt": null }
-  }
+  "generatedAt": "2026-10-12T04:00:00.000Z"
 }
 ```
 
@@ -61,13 +48,13 @@ Quy tắc:
 - Database rỗng trả các count khả dụng bằng 0; KPI payer vẫn trả `null`.
 - Không có `currency` vì Summary không trả giá trị tiền.
 
-Trạng thái source: `CONNECTED`, `STALE`, `ERROR`, `NOT_CONNECTED`, `NOT_AVAILABLE`.
+Field `sources` chưa có trong endpoint hiện tại. Khi triển khai nguồn ngoài, trạng thái dự kiến là `CONNECTED`, `STALE`, `ERROR`, `NOT_CONNECTED`, `NOT_AVAILABLE`; phải cập nhật backend, OpenAPI và file này trong cùng PR.
 
 ### Lỗi
 
 - `401 Unauthorized`: thiếu token, token sai hoặc token hết hạn.
 - `403 Forbidden`: đã xác thực nhưng không phải System Admin.
-- `400 Bad Request`: date range/timezone không hợp lệ.
+- `400 Bad Request`: dành cho date range/timezone khi bộ lọc này được triển khai; endpoint snapshot hiện tại chưa nhận query đó.
 - `502 Bad Gateway`: nguồn ngoài lỗi; overview có thể trả partial data kèm source `ERROR` nếu contract đã chốt.
 - `500 Internal Server Error`: lỗi không mong đợi; không trả stack trace hoặc secret.
 

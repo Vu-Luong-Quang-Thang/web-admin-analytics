@@ -57,10 +57,11 @@ Không được tính tất cả participant của tenancy là paying user. Paym
 ## Conversion rate
 
 ```text
-conversionRate = totalAccounts == 0
-  ? 0
-  : round(payingUsers / totalAccounts * 100, 2)
+payingUsers chưa xác định
+  => conversionRate = null
 ```
+
+Chỉ áp dụng công thức `payingUsers / totalAccounts * 100` sau khi nhóm phê duyệt quy tắc payer canonical. Không biến trạng thái chưa xác định thành `0%`.
 
 ## Thời gian
 
