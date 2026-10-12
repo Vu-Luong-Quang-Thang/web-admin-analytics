@@ -1,23 +1,26 @@
 # Định nghĩa Statistics
 
+## Nguyên tắc MVP
+
+GA4/Firebase/Meta/Store là **nguồn để con người đọc số**, chưa được backend gọi tự động. Mỗi số nhập phải có source, period và verification.
+
 ## Landing
 
-- `landingUsers`, `sessions`, `pageViews`: lấy từ GA4 Data API.
-- `downloadClicks`: custom event GA4 khi người dùng bấm nút tải app.
+- `landingUsers`, `sessions`, `pageViews`: người phụ trách đọc từ GA4 dashboard rồi nhập.
+- `downloadClicks`: đọc từ báo cáo GA4 event khi đã gắn event.
 - Nguồn fanpage/campaign trên Landing được xác định bằng UTM; mỗi fanpage/campaign phải dùng link UTM riêng.
 
 ## App
 
-- `firstTimeDownloads`/`totalDownloads`: Google Play Console hoặc App Store Connect khi app đã phát hành.
-- `firstOpens`, `activeUsers`, DAU/MAU và event: Firebase Analytics.
+- `firstTimeDownloads`/`totalDownloads`: đọc từ Google Play Console hoặc App Store Connect khi app đã phát hành.
+- `firstOpens`, `activeUsers`, DAU/MAU và event: đọc từ Firebase Console.
 - `first_open` không bằng download; không gộp hai chỉ số.
 - Nếu chỉ phát APK, hiển thị `downloadClicks` và `firstOpens` riêng, kèm nhãn proxy.
 
 ## Marketing
 
-- `reach`, `impressions`, `clicks`, `spend`: Meta Marketing API theo Ad Account/campaign.
-- Số liệu fanpage: Meta Graph API theo Page ID khi token có quyền.
-- Khi chưa có access token/quyền, trả `NOT_CONNECTED`; không trả 0 vì 0 có nghĩa là đã kết nối nhưng không có kết quả.
+- `reach`, `impressions`, `clicks`, `spend`: Page Manager đọc từ Meta Business Suite/Ads Manager.
+- Khi chưa có quyền xem nguồn, không nhập số giả; nếu cần demo phải dùng verification `DEMO`.
 
 ## Total accounts
 

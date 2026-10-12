@@ -1,72 +1,47 @@
-# Phạm vi MVP
+# Phạm vi MVP nhập số liệu thủ công
 
 ## Mục tiêu
 
-Admin đăng nhập an toàn và xem dữ liệu thật của bốn nhóm:
-
-1. Landing: visitors, sessions, page views, click tải app và nguồn/UTM.
-2. App: downloads hoặc proxy được gắn nhãn, first opens và active users.
-3. Business: tổng tài khoản, paying users, successful payments và conversion rate.
-4. Marketing: reach, impressions, clicks và fanpage/campaign.
-
-Đây là phạm vi đích. Trạng thái hiện tại mới có Overview database-backed; GA4, Firebase, Meta và Store chưa được coi là đã kết nối.
+Admin đăng nhập, nhập số liệu lấy từ các dashboard nguồn, lưu vào PostgreSQL và xem kết quả trên Web Admin. Hệ thống không yêu cầu cập nhật thời gian thực.
 
 ## Bắt buộc
 
-- Frontend React + TypeScript + Vite tách khỏi Landing Page.
-- Backend xác minh token thật và phân biệt 401/403.
-- GA4 cho Landing Page và UTM campaign.
-- Firebase Analytics cho app opens, active users và app events.
-- Backend/PostgreSQL cho tài khoản và thanh toán.
-- Meta Graph/Marketing API cho reach, impressions, clicks và fanpage/campaign khi có quyền.
-- Play Console/App Store Connect cho download chính thức khi app đã phát hành.
-- Analytics API tích hợp các nguồn; frontend không giữ secret.
-- Loading, empty và error state.
-- Swagger, unit test và integration test.
-- Dataset có thể đối soát bằng tay giữa database, API và giao diện.
+- React + TypeScript frontend tách khỏi Landing Page.
+- Backend xác minh token và phân biệt `401`/`403`.
+- Form thêm và sửa số liệu thủ công.
+- Danh sách lịch sử bản ghi và người cập nhật.
+- Dashboard tổng hợp theo KPI và khoảng thời gian.
+- PostgreSQL lưu dữ liệu; frontend không hard-code KPI values.
+- Validation, audit fields và phân biệt verified/unverified/demo.
+- Swagger, unit test, database integration test và E2E cơ bản.
+- Dataset đối soát được bằng tay với nguồn gốc.
 
-## Triển khai theo giai đoạn
+## Nguồn dữ liệu
 
-### Giai đoạn 1 - Core
+- Người phụ trách đọc GA4, Firebase, Meta Business Suite hoặc Store Console rồi nhập số.
+- Accounts/payments có thể query trực tiếp từ database app; không nhập lại nếu query hiện có đã đáp ứng.
+- Nếu chưa có dữ liệu thật, dùng `DEMO` và hiển thị nhãn rõ ràng.
 
-- Authentication/authorization, layout, date filter và source status.
-- User/payment statistics từ database.
-- GA4 Landing Analytics và UTM.
-- Firebase App Analytics.
+## Được hoãn
 
-### Giai đoạn 2 - External access
-
-- Store download metrics khi app đã publish và có quyền.
-- Meta Analytics khi có Page/Ad Account/token/quyền API.
-- Nguồn chưa cấu hình hiển thị `Not connected`, không hiển thị dữ liệu Demo như dữ liệu thật.
-
-### Ngoài phạm vi ban đầu
-
-- TikTok, kho dữ liệu/ETL phức tạp, dự đoán và attribution xuyên thiết bị.
+- GA4 Data API, Firebase Analytics API, Meta Graph/Marketing API.
+- Google Play Developer API và App Store Connect API.
+- Đồng bộ thời gian thực, polling, webhook, quota, cache nguồn ngoài.
+- Kho dữ liệu/ETL, dự đoán và attribution xuyên thiết bị.
 
 ## Kiến trúc
 
 ```text
-web-admin-analytics
-        |
-        | HTTPS + Bearer token
-        v
-TroOi-Project / NestJS Analytics API
-   |       |         |          |
-Postgres  GA4     Firebase   Meta/Stores
+Nguồn số liệu → người nhập → Admin form → Backend API → PostgreSQL → Dashboard
 ```
-
-Frontend không kết nối trực tiếp PostgreSQL.
 
 ## Definition of Done
 
-- Token thiếu/sai trả 401; user thường trả 403; System Admin trả 200.
-- Không có dữ liệu hard-code hoặc Demo trong bản bàn giao.
-- KPI database khớp giữa truy vấn, API và frontend.
-- KPI tích hợp đối chiếu được với dashboard nguồn trong cùng khoảng ngày/múi giờ.
-- Mỗi card ghi rõ source, thời điểm cập nhật và trạng thái kết nối.
-- Không gọi Firebase `first_open` là download chính thức.
-- Build, lint, typecheck và test đều pass.
-- Không commit `.env`, token hoặc secret.
-- Có README chạy local và ít nhất một reviewer khác duyệt PR.
-
+- Admin thêm/sửa/xem được bản ghi; user thường không có quyền.
+- Dữ liệu sai bị từ chối bằng lỗi dễ hiểu.
+- Dashboard hiển thị nguồn, khoảng thời gian, trạng thái và thời điểm cập nhật.
+- `DEMO` không bị nhầm với dữ liệu thật.
+- API/database/UI cho cùng kết quả trên dataset nghiệm thu.
+- Build, lint, typecheck, unit/integration/E2E tests pass.
+- Không có secret hoặc credential trong repository/log.
+- Có hướng dẫn chạy local và ít nhất một reviewer khác duyệt PR.

@@ -1,5 +1,10 @@
 # Statistics API Contract
 
+## Trạng thái
+
+- Database Overview bên dưới đã triển khai.
+- Manual Entry API là contract dự kiến cho MVP mới; chưa được coi là có sẵn cho tới khi Swagger và integration tests pass.
+
 ## Query chung dự kiến
 
 ```text
@@ -14,7 +19,7 @@ Endpoint snapshot hiện tại chưa nhận các query này. Khi triển khai b�
 GET /api/v1/admin/analytics/overview
 ```
 
-Các endpoint Landing, App, Marketing và Sources mới là kế hoạch; chưa được xem là API hiện có cho tới khi có nguồn thật, adapter và test.
+Các KPI Landing, App và Marketing sẽ đi qua Manual Entry API trong MVP; không tạo endpoint tự động theo từng nguồn ở giai đoạn này.
 
 ## Business Summary
 
@@ -48,14 +53,52 @@ Quy tắc:
 - Database rỗng trả các count khả dụng bằng 0; KPI payer vẫn trả `null`.
 - Không có `currency` vì Summary không trả giá trị tiền.
 
-Field `sources` chưa có trong endpoint hiện tại. Khi triển khai nguồn ngoài, trạng thái dự kiến là `CONNECTED`, `STALE`, `ERROR`, `NOT_CONNECTED`, `NOT_AVAILABLE`; phải cập nhật backend, OpenAPI và file này trong cùng PR.
+## Manual Entry API dự kiến
+
+```text
+POST  /api/v1/admin/statistics/entries
+GET   /api/v1/admin/statistics/entries
+GET   /api/v1/admin/statistics/entries/:id
+PATCH /api/v1/admin/statistics/entries/:id
+GET   /api/v1/admin/statistics/summary
+```
+
+### Tạo bản ghi
+
+```json
+{
+  "metricKey": "META_REACH",
+  "source": "META_BUSINESS_SUITE",
+  "scopeKey": "fanpage-main",
+  "value": 1250,
+  "unit": "COUNT",
+  "periodStart": "2026-10-01",
+  "periodEnd": "2026-10-07",
+  "timezone": "Asia/Ho_Chi_Minh",
+  "verification": "MANUAL_VERIFIED",
+  "note": "Đối soát Meta Business Suite tuần 1"
+}
+```
+
+Client không gửi `createdByUserId`, `createdAt`, `updatedByUserId` hoặc `updatedAt`; Backend lấy actor từ token và tự tạo timestamp.
+
+### Quy tắc response/lỗi
+
+- `201 Created`: tạo thành công.
+- `200 OK`: đọc hoặc sửa thành công.
+- `400 Bad Request`: enum, value, date, unit hoặc note không hợp lệ.
+- `401 Unauthorized`: token thiếu/sai/hết hạn.
+- `403 Forbidden`: user không phải Admin.
+- `404 Not Found`: entry không tồn tại.
+- `409 Conflict`: trùng metric/source/scope/period/timezone.
+
+Danh sách hỗ trợ filter theo metric, source, verification và period. Phân trang phải được bổ sung nếu dataset có thể tăng; không trả vô hạn toàn bộ bảng.
 
 ### Lỗi
 
 - `401 Unauthorized`: thiếu token, token sai hoặc token hết hạn.
 - `403 Forbidden`: đã xác thực nhưng không phải System Admin.
 - `400 Bad Request`: dành cho date range/timezone khi bộ lọc này được triển khai; endpoint snapshot hiện tại chưa nhận query đó.
-- `502 Bad Gateway`: nguồn ngoài lỗi; overview có thể trả partial data kèm source `ERROR` nếu contract đã chốt.
 - `500 Internal Server Error`: lỗi không mong đợi; không trả stack trace hoặc secret.
 
 Error body dùng format chung hiện có của `TroOi-Project`; không tạo format riêng chỉ cho module Statistics.

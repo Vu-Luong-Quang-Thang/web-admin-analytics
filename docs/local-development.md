@@ -74,6 +74,8 @@ API client gọi đường dẫn tương đối:
 
 Frontend không được gọi PostgreSQL, không chứa Google/Meta service secret và phải hiển thị `payingUsers: null` thành **Chưa xác định**.
 
+Trong MVP nhập thủ công, frontend sẽ gọi thêm `/admin/statistics/entries` sau khi Backend triển khai contract. Không hard-code dữ liệu thay cho API trong bản bàn giao.
+
 ## Trạng thái đã kiểm chứng
 
 - PostgreSQL container healthy.

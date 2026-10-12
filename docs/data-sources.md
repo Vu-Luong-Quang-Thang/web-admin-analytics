@@ -1,39 +1,37 @@
-# Nguồn dữ liệu
+# Nguồn dữ liệu và cách nhập thủ công
 
-| Nhóm | KPI | Nguồn chính | Ghi chú |
+| Nhóm | KPI | Nơi đọc số | Người chịu trách nhiệm |
 |---|---|---|---|
-| Landing | users, sessions, page views | GA4 Data API | User count có thể là số ước lượng theo cơ chế của GA4. |
-| Landing | click tải app | GA4 custom event | Gắn event cho từng nút/link. |
-| Attribution | source/fanpage/campaign | GA4 + UTM | Mỗi fanpage/campaign dùng UTM riêng. |
-| App | first opens, active users, events | Firebase Analytics | Không phải download chính thức. |
-| Android | installs/downloads | Google Play Console | Chỉ có khi app được phát hành và có quyền. |
-| iOS | first-time/total downloads | App Store Connect | Chỉ có khi app được phát hành và có quyền. |
-| Business | accounts, payments | PostgreSQL | Nguồn nghiệp vụ chính. |
-| Marketing | reach, impressions, clicks, spend | Meta Marketing API | Cần Ad Account, token và quyền phù hợp. |
-| Fanpage | page insights | Meta Graph API | Cần Page ID/token/quyền phù hợp. |
+| Landing | users, sessions, page views | GA4 dashboard | Data/QA |
+| Landing | download clicks | GA4 event report | Data/QA |
+| App | first opens, active users | Firebase Console | Data/QA |
+| Android/iOS | downloads | Store Console khi app đã publish | Data/QA |
+| Business | accounts, payments | PostgreSQL/API app | Backend |
+| Marketing | reach, impressions, clicks, spend | Meta Business Suite/Ads Manager | Page Manager |
 
-## Trường hợp chỉ phát APK
+## Quy trình nhập
 
-Không có số download chính thức từ Play Console. Dashboard tách:
+1. Chọn đúng dashboard nguồn và khoảng ngày.
+2. Dùng timezone thống nhất `Asia/Ho_Chi_Minh` khi nguồn cho phép.
+3. Ghi lại KPI, giá trị, nguồn, phạm vi và ghi chú đối soát.
+4. Nhập qua Admin Page; không sửa trực tiếp PostgreSQL.
+5. Chọn `MANUAL_VERIFIED` nếu đã đối soát, nếu chưa thì chọn `MANUAL_UNVERIFIED`.
+6. Người QA so sánh bản ghi với nguồn trước khi demo/nghiệm thu.
 
-- `downloadClicks`: số click link APK từ GA4;
-- `firstOpens`: số lần app được mở lần đầu theo Firebase.
+## Giới hạn phải ghi rõ
 
-Hai chỉ số không bằng nhau và không được đổi tên thành `downloads`.
+- `first_open` không phải download chính thức.
+- Click tải APK không chứng minh cài đặt thành công.
+- GA4 users có thể khác số tài khoản trong app.
+- Meta reach và impressions không cùng ý nghĩa.
+- Dữ liệu từ các khoảng thời gian/timezone khác nhau không được so sánh trực tiếp.
+
+## Dữ liệu mẫu
+
+Khi chưa có quyền hoặc dữ liệu thật, có thể nhập bản ghi `DEMO`. Giao diện phải gắn nhãn **Dữ liệu mẫu** và không dùng bản ghi đó trong báo cáo được mô tả là số liệu thực tế.
 
 ## Bảo mật
 
-- Frontend chỉ gọi Analytics API của Backend.
-- Service credential, access token và secret không được gửi xuống trình duyệt hoặc commit.
-- Backend dùng quyền read-only tối thiểu cần thiết.
-- Log không chứa token; lỗi trả về không lộ secret.
-
-## Trạng thái tích hợp
-
-- `CONNECTED`: truy vấn thành công.
-- `STALE`: đang dùng cache cũ.
-- `ERROR`: đã cấu hình nhưng truy vấn lỗi.
-- `NOT_CONNECTED`: chưa cấu hình token/quyền.
-- `NOT_AVAILABLE`: chưa có nguồn, ví dụ app chưa publish.
-
-Không thay `NOT_CONNECTED` hoặc `NOT_AVAILABLE` bằng giá trị 0 hay dữ liệu Demo.
+- Không upload/commit token, credential hoặc ảnh chụp chứa thông tin nhạy cảm.
+- Ghi chú chỉ chứa tham chiếu an toàn, không chứa access token.
+- Chỉ Admin được nhập/sửa; người xem không được thay đổi dữ liệu.
