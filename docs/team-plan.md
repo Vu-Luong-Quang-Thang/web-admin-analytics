@@ -22,27 +22,46 @@ Nhánh: `feature/admin-frontend`
 - Loading, empty, 401, 403 và API-error state.
 - Unit/component tests và README frontend.
 
-## Người 2 - Authentication và API
+## Người 2 - Backend Analytics và Database (Thắng)
 
-Nhánh: `feature/admin-statistics-api`
+Nhánh: `feature/admin-analytics-api`
 
+- Khảo sát authentication và luồng identity hiện tại của `TroOi-Project`.
 - Xác minh Google ID token thật và gắn user vào request.
 - Tạo `AdminGuard` dùng `ADMIN_USER_IDS` cho MVP.
 - Tạo Analytics module, date-range validation và các endpoint đã chốt.
-- Adapter phía server cho GA4, Firebase, Meta và Store; secret chỉ ở Backend.
+- Khảo sát schema và lập mapping KPI → table → column → filter.
+- Chốt mapping payment → user và các giá trị `verification` thành công với cả nhóm.
+- Viết query/repository cho accounts, paying users, successful payments và conversion rate.
+- Chuẩn bị migration/index chỉ khi có nhu cầu được xác minh.
+- Chuẩn bị seed/fixtures và đối soát kết quả SQL bằng tay.
+- Trả dữ liệu tài khoản, paying users, successful payments và conversion rate theo API contract.
+- Viết adapter phía server cho GA4, Firebase, Meta và Store; secret chỉ ở Backend.
 - Timeout/cache/error isolation để một nguồn lỗi không làm mất toàn bộ dashboard.
-- Swagger, unit tests và test 401/403/200.
+- Trả source status `CONNECTED`, `STALE`, `ERROR`, `NOT_CONNECTED` hoặc `NOT_AVAILABLE`.
+- Swagger, unit test, integration test và test 400/401/403/200/502.
 
-## Người 3 - Data
+### Sản phẩm bàn giao của Thắng
 
-Nhánh: `feature/statistics-data`
+- Admin authentication/authorization hoạt động đúng.
+- Analytics API đúng contract và không lộ secret.
+- Dữ liệu PostgreSQL được lấy qua repository, không viết SQL trong controller.
+- Query không đếm trùng payer, không tính payment void/reverse và có fixture chứng minh.
+- Kết quả SQL trực tiếp khớp với response của API.
+- GA4/Firebase/Meta/Store được tích hợp qua adapter tách biệt.
+- Khi nguồn ngoài chưa có quyền, API trả trạng thái trung thực thay vì dữ liệu Demo.
+- Swagger và test chính đều pass.
 
-- Lập data mapping KPI → table → column → filter.
-- Chốt payer mapping với nhóm.
-- Viết query count tại PostgreSQL, không load tất cả record vào memory.
-- Fixtures: database rỗng, chưa trả, nhiều payment, void/reverse, nhiều participant.
-- Đối soát kết quả bằng tay.
-- Thiết kế bảng snapshot/sync log chỉ khi API ngoài cần cache; không sao chép dữ liệu nghiệp vụ thành nguồn chính thứ hai.
+## Người 3 - Tracking và External Data
+
+Nhánh: `feature/analytics-tracking`
+
+- Gắn GA4 và custom event click tải app vào Landing Page.
+- Thiết lập quy ước UTM cho từng fanpage/campaign.
+- Gắn Firebase Analytics và các app event đã chốt.
+- Kiểm tra dữ liệu trên GA4/Firebase DebugView trước khi bàn giao.
+- Phối hợp xin Page/Ad Account/token/quyền Meta và quyền Store.
+- Bàn giao property/app/page/account ID và danh sách metric cho Thắng; không commit credential.
 
 ## Người 4 - Integration và QA
 
