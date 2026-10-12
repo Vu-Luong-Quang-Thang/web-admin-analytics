@@ -1,5 +1,24 @@
 # Định nghĩa Statistics
 
+## Landing
+
+- `landingUsers`, `sessions`, `pageViews`: lấy từ GA4 Data API.
+- `downloadClicks`: custom event GA4 khi người dùng bấm nút tải app.
+- Nguồn fanpage/campaign trên Landing được xác định bằng UTM; mỗi fanpage/campaign phải dùng link UTM riêng.
+
+## App
+
+- `firstTimeDownloads`/`totalDownloads`: Google Play Console hoặc App Store Connect khi app đã phát hành.
+- `firstOpens`, `activeUsers`, DAU/MAU và event: Firebase Analytics.
+- `first_open` không bằng download; không gộp hai chỉ số.
+- Nếu chỉ phát APK, hiển thị `downloadClicks` và `firstOpens` riêng, kèm nhãn proxy.
+
+## Marketing
+
+- `reach`, `impressions`, `clicks`, `spend`: Meta Marketing API theo Ad Account/campaign.
+- Số liệu fanpage: Meta Graph API theo Page ID khi token có quyền.
+- Khi chưa có access token/quyền, trả `NOT_CONNECTED`; không trả 0 vì 0 có nghĩa là đã kết nối nhưng không có kết quả.
+
 ## Total accounts
 
 MVP dùng:
