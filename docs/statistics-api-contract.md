@@ -34,9 +34,12 @@ Authorization: Bearer <verified-id-token>
 ```json
 {
   "totalAccounts": 10,
-  "payingUsers": 3,
+  "payingUsers": null,
   "successfulPayments": 4,
-  "conversionRate": 30,
+  "paymentClaimSubmitters": 2,
+  "gatewayCheckoutCreators": 1,
+  "conversionRate": null,
+  "payingUsersStatus": "UNAVAILABLE_POLICY_OPEN",
   "generatedAt": "2026-10-12T04:00:00.000Z",
   "sources": {
     "database": { "status": "CONNECTED", "updatedAt": "2026-10-12T04:00:00.000Z" },
@@ -50,10 +53,12 @@ Authorization: Bearer <verified-id-token>
 
 Quy tắc:
 
-- Các count là integer không âm.
-- `conversionRate` là number từ 0 đến 100, làm tròn tối đa hai chữ số thập phân.
+- Các count có dữ liệu là integer không âm.
+- `payingUsers` và `conversionRate` là `null` cho tới khi nhóm chốt quy tắc canonical xác định payer.
+- `paymentClaimSubmitters` và `gatewayCheckoutCreators` chỉ mô tả người gửi claim/người tạo checkout; không phải payer đã xác minh và không được cộng trực tiếp.
+- `payingUsersStatus` hiện là `UNAVAILABLE_POLICY_OPEN`.
 - `generatedAt` là UTC ISO 8601 do Backend tạo.
-- Database rỗng trả bốn KPI bằng 0.
+- Database rỗng trả các count khả dụng bằng 0; KPI payer vẫn trả `null`.
 - Không có `currency` vì Summary không trả giá trị tiền.
 
 Trạng thái source: `CONNECTED`, `STALE`, `ERROR`, `NOT_CONNECTED`, `NOT_AVAILABLE`.
