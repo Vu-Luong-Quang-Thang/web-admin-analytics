@@ -10,7 +10,7 @@ Người phụ trách mở dashboard nguồn
               |
               | đọc và đối soát số liệu
               v
-web-admin-analytics/frontend (dự kiến)
+web-admin-analytics/frontend
               |
               | HTTP + Bearer token
               v
@@ -30,7 +30,8 @@ Frontend không kết nối trực tiếp PostgreSQL. Không copy thư mục `sr
 
 - `web-admin-analytics/backend`: API, validation, audit và database access.
 - `web-admin-analytics/database`: migration PostgreSQL riêng của Admin.
-- Frontend Admin sẽ nằm trong repo này trên nhánh `feature/admin-frontend`.
+- `web-admin-analytics/frontend`: React/Vite form nhập liệu, KPI và lịch sử.
+- `render.yaml`: blueprint deploy API + PostgreSQL; frontend có thể deploy dạng static site.
 
 `TroOi-Project` chỉ được clone để tham khảo cấu trúc/dữ liệu được phép; không commit code Admin vào repo đó và không copy toàn bộ `src`. `TroOi-Landing-Page`, GA4, Firebase, Meta Business Suite và Store Console chỉ là nơi đọc số liệu gốc.
 
@@ -84,16 +85,18 @@ updatedAt       thời điểm sửa gần nhất
 
 ## API
 
-Đã triển khai trên nhánh `feature/admin-backend-database`:
+Đã triển khai và được tích hợp trên nhánh `feature/admin-mvp-integration`:
 
 ```http
 POST  /api/v1/admin/statistics/entries
 GET   /api/v1/admin/statistics/entries
 GET   /api/v1/admin/statistics/entries/:id
 PATCH /api/v1/admin/statistics/entries/:id
+GET   /api/v1/admin/statistics/summary?from=YYYY-MM-DD&to=YYYY-MM-DD
 ```
 
-Summary/dashboard aggregate và Google/OIDC login là bước tiếp theo. Bearer token hiện tại chỉ dành cho local MVP, không được dùng để public deploy.
+Bearer token là cơ chế MVP để kịp demo. Khi deploy cho giáo viên, chỉ chia sẻ token qua kênh
+riêng và không commit token lên GitHub. Nếu triển khai lâu dài/công khai rộng, thay bằng Google/OIDC.
 
 ## Validation bắt buộc
 

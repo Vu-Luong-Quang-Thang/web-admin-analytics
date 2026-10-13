@@ -8,6 +8,13 @@ servers:
 security:
   - bearerAuth: []
 paths:
+  /api/v1/auth/me:
+    get:
+      summary: Xác minh tài khoản Google thuộc allowlist System Admin
+      responses:
+        '200': { description: Principal System Admin }
+        '401': { description: Google token không hợp lệ hoặc hết hạn }
+        '403': { description: Tài khoản hợp lệ nhưng không có quyền System Admin }
   /api/v1/health:
     get:
       security: []

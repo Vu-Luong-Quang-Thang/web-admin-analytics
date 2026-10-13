@@ -46,10 +46,14 @@ npm run test:integration
 Test tạo một bản ghi riêng ở kỳ năm 2099 và luôn xóa bản ghi đó khi kết thúc. Test không reset
 database, không xóa volume và không ảnh hưởng dữ liệu nhập tay đang có.
 
-`ADMIN_API_TOKEN` là cơ chế MVP local và phải dài tối thiểu 24 ký tự. Không commit token thật. Trước khi public deploy, thay bằng Google/OIDC verification và phân quyền Admin chính thức.
+Production xác minh Google ID token bằng cùng `GOOGLE_CLIENT_ID` và thuật toán tạo `userId` của
+app Trọ Ơi. Chỉ `userId` trong `ADMIN_USER_IDS` được phép truy cập; tài khoản hợp lệ nhưng không
+có quyền nhận `403`. `ADMIN_API_TOKEN` chỉ hoạt động khi không chạy `NODE_ENV=production`, nhằm
+phục vụ local development. Không commit token hay ID thật.
 
 ## Chuẩn bị deploy
 
 Lệnh `npm start` tự chạy các file migration SQL trước khi mở API. Migration hiện tại có thể chạy
 lặp lại an toàn. Khi deploy, đặt `HOST=0.0.0.0`, `DATABASE_URL`, `ADMIN_API_TOKEN`,
-`ADMIN_USER_ID` và `CORS_ORIGIN` bằng biến môi trường của nền tảng; không ghi secret vào GitHub.
+`GOOGLE_CLIENT_ID`, `ADMIN_USER_IDS` và `CORS_ORIGIN` bằng biến môi trường của nền tảng; không
+ghi credential hoặc danh sách người dùng thật vào GitHub.

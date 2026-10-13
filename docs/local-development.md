@@ -1,24 +1,15 @@
-# Chạy local — Backend và Database độc lập
+# Chạy toàn bộ dự án trên máy
 
-Toàn bộ Admin MVP nằm trong repo `web-admin-analytics`:
+Tất cả thành phần nằm trong `web-admin-analytics`; quy trình này không dùng và không sửa
+`TroOi-Project`.
 
-```text
-web-admin-analytics/
-├─ backend/              Node.js + TypeScript API
-├─ database/migrations/  PostgreSQL schema
-├─ compose.yml           PostgreSQL local
-└─ docs/
-```
+## Yêu cầu đã kiểm tra
 
-`TroOi-Project` chỉ dùng để tham khảo dữ liệu/schema được phép. Không commit code Admin vào repo đó, không copy toàn bộ `src` và không kết nối database production.
+- Node.js 22 trở lên (máy hiện tại: Node 24).
+- Docker Desktop + Docker Compose.
+- PowerShell/Windows Terminal. VS Code chỉ là tùy chọn.
 
-## Yêu cầu
-
-- Node.js 22 trở lên.
-- Docker Desktop.
-- PowerShell/Windows Terminal; VS Code chỉ là tùy chọn để xem/sửa file.
-
-## Khởi động PostgreSQL
+## 1. Database
 
 ```powershell
 cd T:\exe2\git\web-admin-analytics
@@ -26,57 +17,78 @@ docker compose up -d postgres
 docker compose ps
 ```
 
-PostgreSQL Admin chạy riêng trên cổng `55433`. Migration trong `database/migrations` được áp dụng khi volume được tạo lần đầu.
+Chờ trạng thái `healthy`. Dữ liệu nằm trong volume `web-admin-analytics_admin_analytics_data`.
+`docker compose stop` hoặc `docker compose down` vẫn giữ volume. Không chạy
+`docker compose down -v` vì `-v` xóa toàn bộ dữ liệu local.
 
-Không chạy `docker compose down -v` nếu muốn giữ dữ liệu; tham số `-v` xóa volume database.
-
-## Build và test Backend
+## 2. Backend — Terminal thứ nhất
 
 ```powershell
 cd T:\exe2\git\web-admin-analytics\backend
 npm install
+Copy-Item .env.example .env   # chỉ cần nếu chưa có .env
+npm run build
+npm start
+```
+
+Backend chạy tại `http://127.0.0.1:3200`. `npm start` tự áp dụng migration an toàn trước khi mở
+API. File `.env` đã được gitignore; không commit token.
+
+Kiểm tra:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:3200/api/v1/health
 npm run typecheck
 npm test
+npm run test:integration
+```
+
+Integration test tạo một bản ghi riêng, kiểm tra CRUD/summary rồi tự xóa; không reset database.
+
+## 3. Frontend — Terminal thứ hai
+
+```powershell
+cd T:\exe2\git\web-admin-analytics\frontend
+npm install
+Copy-Item .env.example .env   # chỉ cần nếu chưa có .env
+npm run dev -- --host 127.0.0.1
+```
+
+Mở `http://127.0.0.1:5173`, nhập giá trị `ADMIN_API_TOKEN` trong `backend/.env`. Token chỉ nằm
+trong `sessionStorage` và bị xóa khi đóng phiên trình duyệt.
+
+## 4. Production build
+
+```powershell
+cd T:\exe2\git\web-admin-analytics\backend
+npm run build
+
+cd ..\frontend
 npm run build
 ```
 
-Biến môi trường local:
+Thành công khi backend có `backend/build` và frontend có `frontend/dist`.
 
-```env
-PORT=3200
-DATABASE_URL=postgresql://admin_analytics:admin_analytics_local@localhost:55433/admin_analytics
-ADMIN_API_TOKEN=<token-local-dai-it-nhat-24-ky-tu>
-ADMIN_USER_ID=00000000-0000-4000-8000-000000000001
-```
+## 5. Deploy cho giáo viên xem
 
-Không commit `.env` hoặc token thật. `ADMIN_API_TOKEN` chỉ là cơ chế local MVP; phải thay bằng Google/OIDC verification trước public deploy.
+- Backend + PostgreSQL: dùng `render.yaml` tại root để tạo Render Blueprint.
+- Frontend: deploy `frontend` dưới dạng Static Site; build command `npm ci && npm run build`,
+  publish directory `dist`.
+- Trước build frontend, đặt `VITE_API_URL` bằng URL backend thật.
+- Sau khi có URL frontend, đặt `CORS_ORIGIN` của backend đúng URL đó rồi redeploy backend.
+- `ADMIN_API_TOKEN` phải là secret trên nền tảng; gửi riêng cho giáo viên, không ghi trong README.
+- Kiểm tra sau deploy: health 200, đăng nhập, tạo một bản ghi `DEMO`, thấy KPI/lịch sử, rồi không
+  dùng bản ghi demo như dữ liệu thật.
 
-## API hiện có
+## API
+
+Đặc tả đầy đủ: `backend/openapi.yaml`.
 
 ```text
-GET   http://localhost:3200/api/v1/health
-POST  http://localhost:3200/api/v1/admin/statistics/entries
-GET   http://localhost:3200/api/v1/admin/statistics/entries
-GET   http://localhost:3200/api/v1/admin/statistics/entries/:id
-PATCH http://localhost:3200/api/v1/admin/statistics/entries/:id
+GET   /api/v1/health
+POST  /api/v1/admin/statistics/entries
+GET   /api/v1/admin/statistics/entries
+GET   /api/v1/admin/statistics/entries/:id
+PATCH /api/v1/admin/statistics/entries/:id
+GET   /api/v1/admin/statistics/summary?from=YYYY-MM-DD&to=YYYY-MM-DD
 ```
-
-## Bằng chứng runtime hiện tại
-
-- PostgreSQL container healthy.
-- Migration tạo bảng, constraints và indexes thành công.
-- Typecheck, 2 validation tests và build pass.
-- Health trả `200`.
-- Thiếu token trả `401`.
-- Tạo entry trả `201`, list đọc lại được entry.
-- Tạo trùng cùng metric/source/scope/period/timezone trả `409`.
-
-## Frontend sau này
-
-Frontend cấu hình:
-
-```env
-VITE_API_BASE_URL=http://localhost:3200/api/v1
-```
-
-Frontend gọi `/admin/statistics/entries`, không truy cập PostgreSQL và không hard-code KPI values trong bản bàn giao.

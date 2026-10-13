@@ -1,5 +1,22 @@
 services:
   - type: web
+    name: web-admin-analytics
+    runtime: static
+    buildCommand: cd frontend && npm ci && npm run build
+    staticPublishPath: ./frontend/dist
+    envVars:
+      - key: VITE_API_URL
+        sync: false
+      - key: VITE_GOOGLE_CLIENT_ID
+        sync: false
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+  - type: web
     name: web-admin-analytics-api
     runtime: node
     plan: free
@@ -9,16 +26,18 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 22
+      - key: NODE_ENV
+        value: production
       - key: HOST
         value: 0.0.0.0
       - key: DATABASE_URL
         fromDatabase:
           name: web-admin-analytics-db
           property: connectionString
-      - key: ADMIN_API_TOKEN
-        generateValue: true
-      - key: ADMIN_USER_ID
-        value: 00000000-0000-4000-8000-000000000001
+      - key: ADMIN_USER_IDS
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
       - key: CORS_ORIGIN
         sync: false
 databases:

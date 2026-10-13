@@ -1,16 +1,57 @@
-import { timingSafeEqual } from 'node:crypto';
+import { createHash, timingSafeEqual } from 'node:crypto';
 import type { IncomingMessage } from 'node:http';
+import { OAuth2Client } from 'google-auth-library';
 
-export type AdminPrincipal = { userId: string };
+export type AdminPrincipal = { userId: string; email?: string; name?: string; pictureUrl?: string };
+export type AuthenticationResult = AdminPrincipal | 'FORBIDDEN' | null;
+const identityNamespace = 'c22d8235-9d37-5d5f-bc4f-1f3bbd0b59a8';
 
-export function authenticate(request: IncomingMessage): AdminPrincipal | null {
+export function googlePrincipalUserId(issuer: string, subject: string): string {
+  const namespace = Buffer.from(identityNamespace.replaceAll('-', ''), 'hex');
+  const canonical = `google|${issuer.trim()}|${subject.trim()}`;
+  const bytes = Buffer.from(createHash('sha1').update(namespace).update(canonical).digest().subarray(0, 16));
+  bytes[6] = (bytes[6]! & 0x0f) | 0x50;
+  bytes[8] = (bytes[8]! & 0x3f) | 0x80;
+  const hex = bytes.toString('hex');
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
+export function parseAdminIds(value = process.env.ADMIN_USER_IDS): Set<string> {
+  return new Set((value ?? '').split(',').map((item) => item.trim()).filter(Boolean));
+}
+
+function localPrincipal(token: string): AdminPrincipal | null {
+  if (process.env.NODE_ENV === 'production') return null;
   const expected = process.env.ADMIN_API_TOKEN;
   const userId = process.env.ADMIN_USER_ID;
-  const header = request.headers.authorization;
-  if (!expected || expected.length < 24 || !userId || !header?.startsWith('Bearer ')) return null;
-  const actual = header.slice(7).trim();
-  const left = Buffer.from(actual);
+  if (!expected || expected.length < 24 || !userId) return null;
+  const left = Buffer.from(token);
   const right = Buffer.from(expected);
-  if (left.length !== right.length || !timingSafeEqual(left, right)) return null;
-  return { userId };
+  return left.length === right.length && timingSafeEqual(left, right) ? { userId } : null;
+}
+
+export async function authenticate(request: IncomingMessage): Promise<AuthenticationResult> {
+  const header = request.headers.authorization;
+  if (!header?.startsWith('Bearer ')) return null;
+  const token = header.slice(7).trim();
+  const local = localPrincipal(token);
+  if (local) return local;
+
+  const clientId = process.env.GOOGLE_CLIENT_ID?.trim();
+  if (!clientId) return null;
+  try {
+    const ticket = await new OAuth2Client().verifyIdToken({ idToken: token, audience: clientId });
+    const payload = ticket.getPayload();
+    if (!payload?.iss || !payload.sub || payload.email_verified !== true) return null;
+    const userId = googlePrincipalUserId(payload.iss, payload.sub);
+    if (!parseAdminIds().has(userId)) return 'FORBIDDEN';
+    return {
+      userId,
+      ...(payload.email ? { email: payload.email } : {}),
+      ...(payload.name ? { name: payload.name } : {}),
+      ...(payload.picture ? { pictureUrl: payload.picture } : {}),
+    };
+  } catch {
+    return null;
+  }
 }

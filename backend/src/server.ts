@@ -48,12 +48,20 @@ async function handler(request: IncomingMessage, response: ServerResponse): Prom
     json(response, 200, { status: 'ok' });
     return;
   }
-  const principal = authenticate(request);
+  const principal = await authenticate(request);
+  if (principal === 'FORBIDDEN') {
+    json(response, 403, { error: 'System Admin access is required' });
+    return;
+  }
   if (!principal) {
     json(response, 401, { error: 'Unauthorized' });
     return;
   }
   try {
+    if (request.method === 'GET' && url.pathname === '/api/v1/auth/me') {
+      json(response, 200, { data: principal });
+      return;
+    }
     if (request.method === 'POST' && url.pathname === prefix) {
       const row = await insertEntry(pool, randomUUID(), principal.userId, validateEntry(await readJson(request)));
       json(response, 201, { data: row });
