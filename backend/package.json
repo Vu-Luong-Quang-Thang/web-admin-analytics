@@ -8,7 +8,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "start": "node --env-file-if-exists=.env build/src/migrate.js && node --env-file-if-exists=.env build/src/server.js",
+    "start": "node --env-file-if-exists=.env build/src/migrate.js && node --env-file-if-exists=.env build/src/bootstrap-admin.js && node --env-file-if-exists=.env build/src/server.js",
     "dev": "tsx --env-file=.env watch src/server.ts",
     "grant-admin": "node --env-file-if-exists=.env build/src/grant-admin.js",
     "create-local-admin": "node --env-file-if-exists=.env build/src/create-local-admin.js",
