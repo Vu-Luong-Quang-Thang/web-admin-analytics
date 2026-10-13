@@ -20,7 +20,7 @@ services:
     name: web-admin-analytics-api
     runtime: node
     plan: free
-    buildCommand: cd backend && npm ci && npm run build
+    buildCommand: cd backend && npm ci --include=dev && npm run build
     startCommand: cd backend && npm start
     healthCheckPath: /api/v1/health
     envVars:
