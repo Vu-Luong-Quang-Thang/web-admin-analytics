@@ -24,3 +24,21 @@ export type ManualEntryInput = {
   verification: (typeof verifications)[number];
   note: string | null;
 };
+
+export type ManualEntry = ManualEntryInput & {
+  entryId: string;
+  createdByUserId: string;
+  updatedByUserId: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type EntryFilters = {
+  metricKey?: ManualEntryInput['metricKey'];
+  source?: ManualEntryInput['source'];
+  verification?: ManualEntryInput['verification'];
+  from?: string;
+  to?: string;
+  limit: number;
+  offset: number;
+};

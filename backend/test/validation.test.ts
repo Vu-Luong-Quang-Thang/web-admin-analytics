@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { ValidationError, validateEntry } from '../src/validation.js';
+import { ValidationError, validateEntry, validateFilters, validateSummaryPeriod } from '../src/validation.js';
 
 const valid = {
   metricKey: 'META_REACH',
@@ -17,6 +17,21 @@ const valid = {
 
 test('accepts a valid manual statistics entry', () => {
   assert.deepEqual(validateEntry(valid), valid);
+});
+
+test('validates filters and pagination', () => {
+  assert.deepEqual(validateFilters(new URLSearchParams('metricKey=META_REACH&limit=20&offset=10')), {
+    metricKey: 'META_REACH', limit: 20, offset: 10,
+  });
+  assert.throws(() => validateFilters(new URLSearchParams('limit=0')), ValidationError);
+  assert.throws(() => validateFilters(new URLSearchParams('source=UNKNOWN')), ValidationError);
+});
+
+test('requires an exact valid summary period', () => {
+  assert.deepEqual(validateSummaryPeriod(new URLSearchParams('from=2026-10-01&to=2026-10-07')), {
+    from: '2026-10-01', to: '2026-10-07', includeDemo: false,
+  });
+  assert.throws(() => validateSummaryPeriod(new URLSearchParams('from=2026-10-08&to=2026-10-07')), ValidationError);
 });
 
 test('rejects negative values, reversed dates and unknown enums', () => {

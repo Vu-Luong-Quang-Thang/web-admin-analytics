@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { authenticate } from './auth.js';
-import { createPool, findEntry, insertEntry, listEntries, updateEntry } from './database.js';
-import { ValidationError, validateEntry } from './validation.js';
+import { createPool, findEntry, getSummary, insertEntry, listEntries, updateEntry } from './database.js';
+import { ValidationError, validateEntry, validateFilters, validateSummaryPeriod } from './validation.js';
 
 const pool = createPool();
 const prefix = '/api/v1/admin/statistics/entries';
@@ -60,9 +60,18 @@ async function handler(request: IncomingMessage, response: ServerResponse): Prom
       return;
     }
     if (request.method === 'GET' && url.pathname === prefix) {
-      const rawLimit = Number(url.searchParams.get('limit') ?? 50);
-      const limit = Number.isInteger(rawLimit) && rawLimit > 0 ? Math.min(rawLimit, 100) : 50;
-      json(response, 200, { data: await listEntries(pool, limit) });
+      const filters = validateFilters(url.searchParams);
+      const result = await listEntries(pool, filters);
+      json(response, 200, { data: result.items, pagination: {
+        total: result.total, limit: filters.limit, offset: filters.offset,
+      } });
+      return;
+    }
+    if (request.method === 'GET' && url.pathname === '/api/v1/admin/statistics/summary') {
+      const period = validateSummaryPeriod(url.searchParams);
+      json(response, 200, { period: { from: period.from, to: period.to }, data: await getSummary(
+        pool, period.from, period.to, period.includeDemo,
+      ) });
       return;
     }
     const match = url.pathname.match(/^\/api\/v1\/admin\/statistics\/entries\/([0-9a-f-]{36})$/i);
@@ -82,17 +91,13 @@ async function handler(request: IncomingMessage, response: ServerResponse): Prom
         throw new ValidationError('body must be an object');
       }
       const row = await updateEntry(pool, match[1]!, principal.userId, validateEntry({
-        metricKey: existing.metric_key,
+        metricKey: existing.metricKey,
         source: existing.source,
-        scopeKey: existing.scope_key,
-        value: Number(existing.value),
+        scopeKey: existing.scopeKey,
+        value: existing.value,
         unit: existing.unit,
-        periodStart: existing.period_start instanceof Date
-          ? existing.period_start.toISOString().slice(0, 10)
-          : String(existing.period_start),
-        periodEnd: existing.period_end instanceof Date
-          ? existing.period_end.toISOString().slice(0, 10)
-          : String(existing.period_end),
+        periodStart: existing.periodStart,
+        periodEnd: existing.periodEnd,
         timezone: existing.timezone,
         verification: existing.verification,
         note: existing.note,
@@ -117,8 +122,9 @@ async function handler(request: IncomingMessage, response: ServerResponse): Prom
 }
 
 const port = Number(process.env.PORT ?? 3200);
+const host = process.env.HOST ?? '127.0.0.1';
 const server = createServer((request, response) => void handler(request, response));
-server.listen(port, '127.0.0.1', () => console.log(`Admin Analytics API listening on http://127.0.0.1:${port}`));
+server.listen(port, host, () => console.log(`Admin Analytics API listening on http://${host}:${port}`));
 
 async function shutdown() {
   server.close();

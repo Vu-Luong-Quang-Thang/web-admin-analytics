@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: web-admin-analytics-api
+    runtime: node
+    plan: free
+    buildCommand: cd backend && npm ci && npm run build
+    startCommand: cd backend && npm start
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: HOST
+        value: 0.0.0.0
+      - key: DATABASE_URL
+        fromDatabase:
+          name: web-admin-analytics-db
+          property: connectionString
+      - key: ADMIN_API_TOKEN
+        generateValue: true
+      - key: ADMIN_USER_ID
+        value: 00000000-0000-4000-8000-000000000001
+      - key: CORS_ORIGIN
+        sync: false
+databases:
+  - name: web-admin-analytics-db
+    plan: free
+    databaseName: admin_analytics
+    user: admin_analytics

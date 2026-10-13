@@ -6,8 +6,9 @@
   "engines": { "node": ">=22" },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "start": "node build/src/server.js",
+    "start": "node build/src/migrate.js && node build/src/server.js",
     "test": "tsx --test test/**/*.test.ts",
+    "test:integration": "tsx --test test/**/*.integration.test.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {

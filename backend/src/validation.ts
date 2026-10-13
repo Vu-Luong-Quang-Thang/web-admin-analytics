@@ -1,4 +1,7 @@
-import { metricKeys, sources, units, verifications, type ManualEntryInput } from './contracts.js';
+import {
+  metricKeys, sources, units, verifications,
+  type EntryFilters, type ManualEntryInput,
+} from './contracts.js';
 
 export class ValidationError extends Error {}
 
@@ -18,6 +21,43 @@ function isoDate(name: string, value: unknown): string {
     throw new ValidationError(`${name} is not a valid date`);
   }
   return value;
+}
+
+function integer(name: string, value: string | null, fallback: number, min: number, max: number): number {
+  if (value === null) return fallback;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < min || parsed > max) {
+    throw new ValidationError(`${name} must be an integer from ${min} to ${max}`);
+  }
+  return parsed;
+}
+
+export function validateFilters(params: URLSearchParams): EntryFilters {
+  const metricKey = params.get('metricKey');
+  const source = params.get('source');
+  const verification = params.get('verification');
+  const from = params.get('from');
+  const to = params.get('to');
+  const filters: EntryFilters = {
+    limit: integer('limit', params.get('limit'), 50, 1, 100),
+    offset: integer('offset', params.get('offset'), 0, 0, 1_000_000),
+  };
+  if (metricKey !== null) filters.metricKey = enumValue('metricKey', metricKey, metricKeys);
+  if (source !== null) filters.source = enumValue('source', source, sources);
+  if (verification !== null) filters.verification = enumValue('verification', verification, verifications);
+  if (from !== null) filters.from = isoDate('from', from);
+  if (to !== null) filters.to = isoDate('to', to);
+  if (filters.from && filters.to && filters.from > filters.to) {
+    throw new ValidationError('from must not be after to');
+  }
+  return filters;
+}
+
+export function validateSummaryPeriod(params: URLSearchParams) {
+  const from = isoDate('from', params.get('from'));
+  const to = isoDate('to', params.get('to'));
+  if (from > to) throw new ValidationError('from must not be after to');
+  return { from, to, includeDemo: params.get('includeDemo') === 'true' };
 }
 
 export function validateEntry(value: unknown): ManualEntryInput {

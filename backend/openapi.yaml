@@ -1,0 +1,90 @@
+openapi: 3.1.0
+info:
+  title: Web Admin Analytics API
+  version: 0.2.0
+  description: API nhập số liệu thống kê thủ công. Không kết nối runtime của TroOi-Project.
+servers:
+  - url: http://localhost:3200
+security:
+  - bearerAuth: []
+paths:
+  /api/v1/health:
+    get:
+      security: []
+      summary: Kiểm tra backend đang chạy
+      responses:
+        '200': { description: Backend hoạt động }
+  /api/v1/admin/statistics/entries:
+    get:
+      summary: Lọc và phân trang các số liệu đã nhập
+      parameters:
+        - { name: metricKey, in: query, schema: { type: string } }
+        - { name: source, in: query, schema: { type: string } }
+        - { name: verification, in: query, schema: { type: string } }
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 50 } }
+        - { name: offset, in: query, schema: { type: integer, minimum: 0, default: 0 } }
+      responses:
+        '200': { description: Danh sách số liệu }
+        '400': { description: Tham số không hợp lệ }
+        '401': { description: Thiếu hoặc sai token }
+    post:
+      summary: Tạo một số liệu thủ công
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ManualEntryInput' }
+      responses:
+        '201': { description: Đã tạo }
+        '400': { description: Dữ liệu không hợp lệ }
+        '409': { description: Trùng metric, nguồn, phạm vi và kỳ báo cáo }
+  /api/v1/admin/statistics/entries/{entryId}:
+    parameters:
+      - { name: entryId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      summary: Xem một số liệu
+      responses:
+        '200': { description: Số liệu }
+        '404': { description: Không tìm thấy }
+    patch:
+      summary: Sửa một phần số liệu; server kiểm tra lại toàn bộ bản ghi
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        '200': { description: Đã cập nhật }
+        '400': { description: Dữ liệu không hợp lệ }
+        '404': { description: Không tìm thấy }
+  /api/v1/admin/statistics/summary:
+    get:
+      summary: Lấy các KPI có kỳ báo cáo khớp chính xác
+      description: Không cộng các kỳ chồng lấn để tránh làm sai số. Bản ghi DEMO mặc định bị loại.
+      parameters:
+        - { name: from, in: query, required: true, schema: { type: string, format: date } }
+        - { name: to, in: query, required: true, schema: { type: string, format: date } }
+        - { name: includeDemo, in: query, schema: { type: boolean, default: false } }
+      responses:
+        '200': { description: Các KPI trong đúng kỳ }
+        '400': { description: Thiếu hoặc sai kỳ báo cáo }
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer }
+  schemas:
+    ManualEntryInput:
+      type: object
+      required: [metricKey, source, value, unit, periodStart, periodEnd, verification]
+      properties:
+        metricKey: { type: string, example: META_REACH }
+        source: { type: string, example: META_BUSINESS_SUITE }
+        scopeKey: { type: [string, 'null'], example: fanpage-main }
+        value: { type: number, minimum: 0, example: 1250 }
+        unit: { type: string, enum: [COUNT, CURRENCY] }
+        periodStart: { type: string, format: date }
+        periodEnd: { type: string, format: date }
+        timezone: { type: string, default: Asia/Ho_Chi_Minh }
+        verification: { type: string, enum: [MANUAL_VERIFIED, MANUAL_UNVERIFIED, DEMO] }
+        note: { type: [string, 'null'], maxLength: 500 }
