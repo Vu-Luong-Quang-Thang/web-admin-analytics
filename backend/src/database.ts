@@ -1,5 +1,6 @@
 import { Pool, types } from 'pg';
 import type { EntryFilters, ManualEntry, ManualEntryInput } from './contracts.js';
+import type { IdentityPrincipal } from './auth.js';
 
 // PostgreSQL DATE has no timezone. Keep it as YYYY-MM-DD instead of converting
 // local midnight to UTC, which can shift the calendar day.
@@ -38,6 +39,34 @@ export function toEntry(row: EntryRow): ManualEntry {
 export function createPool(databaseUrl = process.env.DATABASE_URL): Pool {
   if (!databaseUrl) throw new Error('DATABASE_URL is required');
   return new Pool({ connectionString: databaseUrl, max: 10, connectionTimeoutMillis: 5_000 });
+}
+
+export type AdminPrincipal = IdentityPrincipal & { roles: string[]; permissions: string[] };
+
+export async function resolveAdminPrincipal(pool: Pool, identity: IdentityPrincipal): Promise<AdminPrincipal | null> {
+  if (identity.localDevelopment) {
+    return { ...identity, roles: ['SUPER_ADMIN'], permissions: ['analytics:read', 'analytics:write', 'admin:manage', 'sync:manage'] };
+  }
+  const result = await pool.query(
+    `SELECT a.trooi_user_id, a.display_name, a.email,
+       coalesce(array_agg(DISTINCT ar.role_key) FILTER (WHERE ar.role_key IS NOT NULL), '{}') AS roles,
+       coalesce(array_agg(DISTINCT rp.permission_key) FILTER (WHERE rp.permission_key IS NOT NULL), '{}') AS permissions
+     FROM admin_accounts a
+     LEFT JOIN admin_account_roles ar ON ar.trooi_user_id = a.trooi_user_id
+     LEFT JOIN admin_role_permissions rp ON rp.role_key = ar.role_key
+     WHERE a.trooi_user_id = $1 AND a.status = 'ACTIVE'
+     GROUP BY a.trooi_user_id, a.display_name, a.email`,
+    [identity.userId],
+  );
+  const row = result.rows[0];
+  if (!row) return null;
+  return {
+    ...identity,
+    name: identity.name ?? row.display_name ?? undefined,
+    email: identity.email ?? row.email ?? undefined,
+    roles: row.roles,
+    permissions: row.permissions,
+  };
 }
 
 export async function insertEntry(pool: Pool, id: string, actorId: string, entry: ManualEntryInput) {

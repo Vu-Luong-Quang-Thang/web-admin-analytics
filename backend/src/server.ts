@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { authenticate } from './auth.js';
-import { createPool, findEntry, getSummary, insertEntry, listEntries, updateEntry } from './database.js';
+import { createPool, findEntry, getSummary, insertEntry, listEntries, resolveAdminPrincipal, updateEntry } from './database.js';
 import { ValidationError, validateEntry, validateFilters, validateSummaryPeriod } from './validation.js';
 
 const pool = createPool();
@@ -48,18 +48,24 @@ async function handler(request: IncomingMessage, response: ServerResponse): Prom
     json(response, 200, { status: 'ok' });
     return;
   }
-  const principal = await authenticate(request);
-  if (principal === 'FORBIDDEN') {
-    json(response, 403, { error: 'System Admin access is required' });
-    return;
-  }
-  if (!principal) {
+  const identity = await authenticate(request);
+  if (!identity) {
     json(response, 401, { error: 'Unauthorized' });
     return;
   }
   try {
+    const principal = await resolveAdminPrincipal(pool, identity);
+    if (!principal) {
+      json(response, 403, { error: 'Admin account is inactive or has not been granted access' });
+      return;
+    }
     if (request.method === 'GET' && url.pathname === '/api/v1/auth/me') {
       json(response, 200, { data: principal });
+      return;
+    }
+    const requiredPermission = request.method === 'GET' ? 'analytics:read' : 'analytics:write';
+    if (!principal.permissions.includes(requiredPermission)) {
+      json(response, 403, { error: `Missing permission: ${requiredPermission}` });
       return;
     }
     if (request.method === 'POST' && url.pathname === prefix) {

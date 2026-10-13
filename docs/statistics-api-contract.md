@@ -3,7 +3,7 @@
 ## Trạng thái
 
 - Manual Entry CRUD đã triển khai bước đầu trên nhánh `feature/admin-backend-database`.
-- Summary và Google/OIDC authentication chưa hoàn thành.
+- Summary và Google authentication đã triển khai; RBAC được lưu trong database Admin.
 
 ## Query chung dự kiến
 
@@ -99,7 +99,9 @@ Error body dùng format chung hiện có của `TroOi-Project`; không tạo for
 
 ## Authentication dependency
 
-`AuthGuard` phải xác minh Google ID token thật, ánh xạ identity sang `user_id` và gắn authenticated user vào request trước khi `AdminGuard` kiểm tra `ADMIN_USER_IDS`.
+Backend xác minh Google ID token thật, ánh xạ identity sang cùng `user_id` của app Trọ Ơi, sau đó
+đọc `admin_accounts`, roles và permissions trong database Admin. `VIEWER` chỉ có
+`analytics:read`; `EDITOR` có thêm `analytics:write`; `SUPER_ADMIN` có toàn bộ quyền.
 
 Chỉ kiểm tra chuỗi `Bearer ` không được coi là authentication.
 

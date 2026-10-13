@@ -47,13 +47,24 @@ Test tạo một bản ghi riêng ở kỳ năm 2099 và luôn xóa bản ghi đ
 database, không xóa volume và không ảnh hưởng dữ liệu nhập tay đang có.
 
 Production xác minh Google ID token bằng cùng `GOOGLE_CLIENT_ID` và thuật toán tạo `userId` của
-app Trọ Ơi. Chỉ `userId` trong `ADMIN_USER_IDS` được phép truy cập; tài khoản hợp lệ nhưng không
-có quyền nhận `403`. `ADMIN_API_TOKEN` chỉ hoạt động khi không chạy `NODE_ENV=production`, nhằm
-phục vụ local development. Không commit token hay ID thật.
+app Trọ Ơi. `admin_accounts.trooi_user_id` liên kết tài khoản app với RBAC của Admin; tài khoản
+không tồn tại, bị khóa hoặc không có quyền phù hợp nhận `403`. Các role mặc định là
+`SUPER_ADMIN`, `EDITOR`, `VIEWER`, `SYNC_MANAGER`.
+
+Sau khi tài khoản đã từng đăng nhập app Trọ Ơi và có `userId`, cấp quyền ban đầu:
+
+```powershell
+npm run build
+npm run grant-admin -- <trooi-user-uuid> SUPER_ADMIN <email> <display name>
+```
+
+`ADMIN_API_TOKEN` chỉ hoạt động khi không chạy `NODE_ENV=production`, nhằm phục vụ local
+development. Không commit token hay ID người dùng thật.
 
 ## Chuẩn bị deploy
 
 Lệnh `npm start` tự chạy các file migration SQL trước khi mở API. Migration hiện tại có thể chạy
-lặp lại an toàn. Khi deploy, đặt `HOST=0.0.0.0`, `DATABASE_URL`, `ADMIN_API_TOKEN`,
-`GOOGLE_CLIENT_ID`, `ADMIN_USER_IDS` và `CORS_ORIGIN` bằng biến môi trường của nền tảng; không
-ghi credential hoặc danh sách người dùng thật vào GitHub.
+lặp lại an toàn. Khi deploy, đặt `HOST=0.0.0.0`, `DATABASE_URL`, `GOOGLE_CLIENT_ID` và
+`CORS_ORIGIN` bằng biến môi trường của nền tảng; không ghi credential hoặc danh sách người dùng
+thật vào GitHub. Sau migration, chạy lệnh `grant-admin` với database production để bootstrap
+System Admin đầu tiên.

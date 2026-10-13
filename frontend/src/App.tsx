@@ -1,5 +1,5 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
-import { api, type Entry, type EntryInput } from './api';
+import { api, type AdminPrincipal, type Entry, type EntryInput } from './api';
 import Charts from './Charts';
 
 const metrics = [
@@ -35,6 +35,7 @@ export default function App() {
   const [period, setPeriod] = useState({ from: today, to: today });
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
+  const [principal, setPrincipal] = useState<AdminPrincipal | null>(null);
   const [loginError, setLoginError] = useState('');
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 
@@ -42,8 +43,8 @@ export default function App() {
     if (!token) return;
     setBusy(true); setMessage('');
     try {
-      const [list, cards] = await Promise.all([api.list(token), api.summary(token, period.from, period.to)]);
-      setEntries(list.data); setSummary(cards.data);
+      const [me, list, cards] = await Promise.all([api.me(token), api.list(token), api.summary(token, period.from, period.to)]);
+      setPrincipal(me.data); setEntries(list.data); setSummary(cards.data);
     } catch (error) { setMessage((error as Error).message); }
     finally { setBusy(false); }
   }, [token, period]);
@@ -68,7 +69,8 @@ export default function App() {
       window.google.accounts.id.initialize({ client_id: googleClientId, callback: async ({ credential }) => {
         setLoginError('');
         try {
-          await api.me(credential);
+          const me = await api.me(credential);
+          setPrincipal(me.data);
           sessionStorage.setItem('admin-token', credential);
           setToken(credential);
         } catch (error) {
@@ -106,7 +108,7 @@ export default function App() {
 
   return <div className="app-shell">
     <header><div><span className="eyebrow">TRỌ ƠI · ADMIN ANALYTICS</span><h1>Tổng quan số liệu</h1></div>
-      <button className="secondary" onClick={() => { sessionStorage.removeItem('admin-token'); setToken(''); }}>Đăng xuất</button></header>
+      <div className="account-box"><div><strong>{principal?.name || principal?.email || 'Admin'}</strong><small>{principal?.roles.join(' · ')}</small></div><button className="secondary" onClick={() => { sessionStorage.removeItem('admin-token'); setToken(''); setPrincipal(null); }}>Đăng xuất</button></div></header>
     {message && <div className={message.startsWith('Đã') ? 'notice success' : 'notice error'} role="status">{message}</div>}
     <section className="period-bar"><div><h2>Kỳ báo cáo</h2><p>Chọn đúng kỳ đã nhập để xem KPI, không cộng kỳ chồng lấn.</p></div>
       <label>Từ ngày<input type="date" value={period.from} onChange={(e) => setPeriod({ ...period, from: e.target.value })} /></label>
@@ -116,7 +118,7 @@ export default function App() {
     </article>) : <div className="empty">Chưa có số liệu cho đúng kỳ này.</div>}</section>
     <Charts entries={entries.filter((entry) => entry.verification !== 'DEMO')} />
     <div className="content-grid">
-      <section className="panel"><h2>Nhập số liệu thủ công</h2><p className="muted">Lấy số từ nguồn chính thức rồi ghi rõ nguồn, phạm vi và kỳ báo cáo.</p>
+      {principal?.permissions.includes('analytics:write') ? <section className="panel"><h2>Nhập số liệu thủ công</h2><p className="muted">Lấy số từ nguồn chính thức rồi ghi rõ nguồn, phạm vi và kỳ báo cáo.</p>
         <form className="entry-form" onSubmit={submit}>
           <label>Chỉ số<select value={form.metricKey} onChange={(e) => setForm({ ...form, metricKey: e.target.value })}>{metrics.map(([key, name]) => <option key={key} value={key}>{name}</option>)}</select></label>
           <label>Nguồn<select value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })}>{sources.map((source) => <option key={source}>{source}</option>)}</select></label>
@@ -128,7 +130,7 @@ export default function App() {
           <label>Xác minh<select value={form.verification} onChange={(e) => setForm({ ...form, verification: e.target.value })}><option>MANUAL_VERIFIED</option><option>MANUAL_UNVERIFIED</option><option>DEMO</option></select></label>
           <label>Ghi chú<textarea maxLength={500} value={form.note ?? ''} onChange={(e) => setForm({ ...form, note: e.target.value || null })} /></label>
           <button disabled={busy}>{busy ? 'Đang xử lý…' : 'Lưu số liệu'}</button>
-        </form></section>
+        </form></section> : <section className="panel readonly"><h2>Chế độ chỉ xem</h2><p>Tài khoản của bạn có thể xem báo cáo nhưng không có quyền cập nhật số liệu.</p></section>}
       <section className="panel history"><div className="panel-title"><div><h2>Lịch sử nhập</h2><p className="muted">{entries.length} bản ghi gần nhất</p></div><button className="secondary" onClick={() => void load()} disabled={busy}>Làm mới</button></div>
         <div className="table-wrap"><table><thead><tr><th>Chỉ số</th><th>Giá trị</th><th>Kỳ</th><th>Nguồn</th><th>Xác minh</th></tr></thead>
           <tbody>{entries.map((entry) => <tr key={entry.entryId}><td><strong>{label(entry.metricKey)}</strong><small>{entry.scopeKey}</small></td><td>{formatValue(entry)}</td><td>{entry.periodStart}<br />→ {entry.periodEnd}</td><td>{entry.source}</td><td><span className={`badge ${entry.verification.toLowerCase()}`}>{entry.verification}</span></td></tr>)}</tbody></table></div>

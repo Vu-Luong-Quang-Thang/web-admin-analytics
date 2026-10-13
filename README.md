@@ -95,8 +95,9 @@ PATCH /api/v1/admin/statistics/entries/:id
 GET   /api/v1/admin/statistics/summary?from=YYYY-MM-DD&to=YYYY-MM-DD
 ```
 
-Bearer token là cơ chế MVP để kịp demo. Khi deploy cho giáo viên, chỉ chia sẻ token qua kênh
-riêng và không commit token lên GitHub. Nếu triển khai lâu dài/công khai rộng, thay bằng Google/OIDC.
+Production dùng Google account của app Trọ Ơi. Database Admin liên kết `trooi_user_id` và quản lý
+role `SUPER_ADMIN`, `EDITOR`, `VIEWER`, `SYNC_MANAGER`; backend kiểm tra permission trước mỗi API.
+Local token chỉ dành cho môi trường phát triển và không hoạt động trong production.
 
 ## Validation bắt buộc
 
@@ -124,3 +125,4 @@ riêng và không commit token lên GitHub. Nếu triển khai lâu dài/công k
 - `docs/data-sources.md`: cách lấy và xác minh số liệu.
 - `docs/manual-entry-design.md`: thiết kế dữ liệu, luồng nhập/sửa và validation.
 - `docs/local-development.md`: chạy hai repository trên máy.
+- `docs/future-automatic-sync.md`: lộ trình chuyển từ nhập tay sang scheduled/realtime sync.

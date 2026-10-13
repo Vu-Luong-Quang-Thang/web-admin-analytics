@@ -10,7 +10,7 @@ security:
 paths:
   /api/v1/auth/me:
     get:
-      summary: Xác minh tài khoản Google thuộc allowlist System Admin
+      summary: Xác minh tài khoản Google và tải role/permission từ database Admin
       responses:
         '200': { description: Principal System Admin }
         '401': { description: Google token không hợp lệ hoặc hết hạn }

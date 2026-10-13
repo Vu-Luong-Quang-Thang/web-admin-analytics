@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { randomUUID } from 'node:crypto';
-import { createPool, findEntry, getSummary, insertEntry, listEntries, updateEntry } from '../src/database.js';
+import { createPool, findEntry, getSummary, insertEntry, listEntries, resolveAdminPrincipal, updateEntry } from '../src/database.js';
 
 const databaseUrl = process.env.TEST_DATABASE_URL;
 
@@ -36,6 +36,23 @@ test('PostgreSQL supports the complete manual-entry workflow', { skip: !database
     assert.ok((await getSummary(pool, '2099-01-01', '2099-01-07', false)).some((item) => item.entryId === id));
   } finally {
     await pool.query('DELETE FROM manual_statistic_entries WHERE entry_id = $1', [id]);
+    await pool.end();
+  }
+});
+
+test('PostgreSQL resolves roles and permissions for a linked TrọƠi account', { skip: !databaseUrl }, async () => {
+  const pool = createPool(databaseUrl);
+  const userId = randomUUID();
+  try {
+    await pool.query(`INSERT INTO admin_accounts (trooi_user_id, display_name) VALUES ($1, 'Integration Admin')`, [userId]);
+    await pool.query(`INSERT INTO admin_account_roles (trooi_user_id, role_key) VALUES ($1, 'EDITOR')`, [userId]);
+    const principal = await resolveAdminPrincipal(pool, { userId, email: 'admin@example.test' });
+    assert.deepEqual(principal?.roles, ['EDITOR']);
+    assert.ok(principal?.permissions.includes('analytics:read'));
+    assert.ok(principal?.permissions.includes('analytics:write'));
+    assert.ok(!principal?.permissions.includes('admin:manage'));
+  } finally {
+    await pool.query('DELETE FROM admin_accounts WHERE trooi_user_id = $1', [userId]);
     await pool.end();
   }
 });

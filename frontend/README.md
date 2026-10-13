@@ -9,8 +9,9 @@ npm run dev
 ```
 
 Đặt `VITE_API_URL` bằng URL backend và `VITE_GOOGLE_CLIENT_ID` bằng Web Client ID dùng chung với
-app Trọ Ơi. Production chỉ cho phép tài khoản Google có `userId` nằm trong `ADMIN_USER_IDS` của
-backend. Google ID token chỉ lưu trong `sessionStorage` và mất khi đóng phiên trình duyệt.
+app Trọ Ơi. Production chỉ cho phép tài khoản Google có `userId` liên kết với một
+`admin_accounts` đang hoạt động; giao diện tự ẩn chức năng cập nhật nếu role chỉ có quyền xem.
+Google ID token chỉ lưu trong `sessionStorage` và mất khi đóng phiên trình duyệt.
 
 Trong chế độ Vite development, mục đăng nhập token local vẫn hiển thị để nhóm kiểm thử khi chưa
 cấu hình Google. Mục này không xuất hiện trong production build và backend production không chấp

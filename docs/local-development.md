@@ -57,6 +57,22 @@ npm run dev -- --host 127.0.0.1
 Mở `http://127.0.0.1:5173`, nhập giá trị `ADMIN_API_TOKEN` trong `backend/.env`. Token chỉ nằm
 trong `sessionStorage` và bị xóa khi đóng phiên trình duyệt.
 
+Production dùng Google account của app Trọ Ơi. Sau khi biết `userId` của tài khoản app, cấp role
+trong database Admin:
+
+```powershell
+cd T:\exe2\git\web-admin-analytics\backend
+npm run build
+npm run grant-admin -- <trooi-user-uuid> SUPER_ADMIN <email> <display name>
+```
+
+Role và quyền:
+
+- `SUPER_ADMIN`: xem, cập nhật, quản lý Admin và đồng bộ.
+- `EDITOR`: xem và cập nhật số liệu.
+- `VIEWER`: chỉ xem.
+- `SYNC_MANAGER`: xem và quản lý đồng bộ tự động.
+
 ## 4. Production build
 
 ```powershell
@@ -76,7 +92,7 @@ Thành công khi backend có `backend/build` và frontend có `frontend/dist`.
   publish directory `dist`.
 - Trước build frontend, đặt `VITE_API_URL` bằng URL backend thật.
 - Sau khi có URL frontend, đặt `CORS_ORIGIN` của backend đúng URL đó rồi redeploy backend.
-- `ADMIN_API_TOKEN` phải là secret trên nền tảng; gửi riêng cho giáo viên, không ghi trong README.
+- Production không dùng `ADMIN_API_TOKEN`; giáo viên đăng nhập Google bằng tài khoản đã được cấp role.
 - Kiểm tra sau deploy: health 200, đăng nhập, tạo một bản ghi `DEMO`, thấy KPI/lịch sử, rồi không
   dùng bản ghi demo như dữ liệu thật.
 

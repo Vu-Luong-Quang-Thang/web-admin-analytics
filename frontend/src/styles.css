@@ -7,6 +7,7 @@ button:disabled { opacity: .6; cursor: wait; }
 .secondary { background: white; color: #315047; border: 1px solid #cedbd5; }
 .app-shell { max-width: 1440px; margin: auto; padding: 2rem; }
 header, .period-bar, .panel-title, .row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.account-box { display: flex; align-items: center; gap: 1rem; text-align: right; }.account-box small { display: block; color: #718179; margin-top: .2rem; }.readonly { border-style: dashed; background: #fafbf9; }
 h1, h2, p { margin-top: 0; } h1 { margin-bottom: 0; font-size: clamp(1.9rem, 4vw, 3.2rem); letter-spacing: -.04em; } h2 { margin-bottom: .35rem; }
 .eyebrow { display: block; margin-bottom: .45rem; color: #15704d; font-size: .74rem; letter-spacing: .14em; font-weight: 800; }
 .period-bar { margin: 2rem 0 1rem; padding: 1rem 1.2rem; border-radius: 16px; background: #e3eee8; }

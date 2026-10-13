@@ -10,6 +10,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node --env-file-if-exists=.env build/src/migrate.js && node --env-file-if-exists=.env build/src/server.js",
     "dev": "tsx --env-file=.env watch src/server.ts",
+    "grant-admin": "node --env-file-if-exists=.env build/src/grant-admin.js",
     "test": "tsx --test test/**/*.test.ts",
     "test:integration": "tsx --test test/**/*.integration.test.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json"
