@@ -7,13 +7,27 @@ import { ValidationError, validateEntry, validateFilters, validateSummaryPeriod 
 const pool = createPool();
 const prefix = '/api/v1/admin/statistics/entries';
 const loginAttempts = new Map<string, { count: number; resetAt: number }>();
+const localOrigins = new Set(['http://localhost:5173', 'http://127.0.0.1:5173']);
+
+function corsOrigin(request: IncomingMessage): string | undefined {
+  const origin = request.headers.origin;
+  if (!origin) return undefined;
+  const configuredOrigins = (process.env.CORS_ORIGIN ?? '').split(',').map((value) => value.trim());
+  if (configuredOrigins.includes(origin)) return origin;
+  return process.env.NODE_ENV !== 'production' && localOrigins.has(origin) ? origin : undefined;
+}
+
+function setCorsHeaders(request: IncomingMessage, response: ServerResponse): void {
+  const origin = corsOrigin(request);
+  if (origin) response.setHeader('access-control-allow-origin', origin);
+  response.setHeader('vary', 'Origin');
+  response.setHeader('access-control-allow-headers', 'authorization, content-type');
+  response.setHeader('access-control-allow-methods', 'GET, POST, PATCH, OPTIONS');
+}
 
 function json(response: ServerResponse, status: number, body: unknown): void {
   response.writeHead(status, {
     'content-type': 'application/json; charset=utf-8',
-    'access-control-allow-origin': process.env.CORS_ORIGIN ?? 'http://localhost:5173',
-    'access-control-allow-headers': 'authorization, content-type',
-    'access-control-allow-methods': 'GET, POST, PATCH, OPTIONS',
   });
   response.end(JSON.stringify(body));
 }
@@ -35,13 +49,10 @@ async function readJson(request: IncomingMessage): Promise<unknown> {
 }
 
 async function handler(request: IncomingMessage, response: ServerResponse): Promise<void> {
+  setCorsHeaders(request, response);
   const url = new URL(request.url ?? '/', 'http://localhost');
   if (request.method === 'OPTIONS') {
-    response.writeHead(204, {
-      'access-control-allow-origin': process.env.CORS_ORIGIN ?? 'http://localhost:5173',
-      'access-control-allow-headers': 'authorization, content-type',
-      'access-control-allow-methods': 'GET, POST, PATCH, OPTIONS',
-    });
+    response.writeHead(204);
     response.end();
     return;
   }
