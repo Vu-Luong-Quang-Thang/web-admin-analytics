@@ -19,6 +19,11 @@ test('accepts a valid manual statistics entry', () => {
   assert.deepEqual(validateEntry(valid), valid);
 });
 
+test('accepts organic social and attributed registration metrics', () => {
+  assert.equal(validateEntry({ ...valid, metricKey: 'SOCIAL_ORGANIC_REACH', source: 'FACEBOOK_INSIGHTS' }).metricKey, 'SOCIAL_ORGANIC_REACH');
+  assert.equal(validateEntry({ ...valid, metricKey: 'ATTRIBUTED_APP_REGISTRATIONS', source: 'TROOI_DATABASE', scopeKey: 'facebook' }).source, 'TROOI_DATABASE');
+});
+
 test('validates filters and pagination', () => {
   assert.deepEqual(validateFilters(new URLSearchParams('metricKey=META_REACH&limit=20&offset=10')), {
     metricKey: 'META_REACH', limit: 20, offset: 10,

@@ -11,8 +11,8 @@ test('PostgreSQL supports the complete manual-entry workflow', { skip: !database
   const actorId = '00000000-0000-4000-8000-000000000001';
   const scopeKey = `integration-${id}`;
   const entry = {
-    metricKey: 'LANDING_USERS' as const,
-    source: 'GA4_CONSOLE' as const,
+    metricKey: 'SOCIAL_ORGANIC_REACH' as const,
+    source: 'FACEBOOK_INSIGHTS' as const,
     scopeKey,
     value: 100,
     unit: 'COUNT' as const,
@@ -28,7 +28,7 @@ test('PostgreSQL supports the complete manual-entry workflow', { skip: !database
     assert.equal(created.value, 100);
 
     assert.equal((await findEntry(pool, id))?.scopeKey, scopeKey);
-    const listed = await listEntries(pool, { metricKey: 'LANDING_USERS', from: '2099-01-01', to: '2099-01-07', limit: 10, offset: 0 });
+    const listed = await listEntries(pool, { metricKey: 'SOCIAL_ORGANIC_REACH', from: '2099-01-01', to: '2099-01-07', limit: 10, offset: 0 });
     assert.ok(listed.items.some((item) => item.entryId === id));
 
     const updated = await updateEntry(pool, id, actorId, { ...entry, value: 125 });

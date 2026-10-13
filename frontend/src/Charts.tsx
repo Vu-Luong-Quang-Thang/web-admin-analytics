@@ -1,18 +1,15 @@
 import { useMemo, useState } from 'react';
 import type { Entry } from './api';
+import { metrics, sourceLabel } from './catalog';
 
-const chartMetrics = [
-  ['LANDING_USERS', 'Người truy cập'], ['APP_ACTIVE_USERS', 'Người dùng app'],
-  ['STORE_DOWNLOADS', 'Lượt tải app'], ['META_REACH', 'Tiếp cận Ads'],
-  ['META_CLICKS', 'Nhấp Ads'], ['META_SPEND', 'Chi phí Ads'],
-] as const;
+const chartMetrics = metrics;
 const colors = ['#156b4a', '#ef8b45', '#5d8fdd', '#c65e8a', '#9a7ad1', '#d0a33b'];
 
 function shortDate(value: string) { return new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit' }).format(new Date(`${value}T00:00:00Z`)); }
 
 export default function Charts({ entries }: { entries: Entry[] }) {
-  const [barMetric, setBarMetric] = useState('META_REACH');
-  const [lineMetric, setLineMetric] = useState('META_CLICKS');
+  const [barMetric, setBarMetric] = useState('SOCIAL_ORGANIC_REACH');
+  const [lineMetric, setLineMetric] = useState('LANDING_USERS');
   const trend = useMemo(() => {
     const periods = [...new Set(entries.filter((item) => item.metricKey === barMetric || item.metricKey === lineMetric)
       .map((item) => item.periodEnd))].sort().slice(-12);
@@ -52,7 +49,7 @@ export default function Charts({ entries }: { entries: Entry[] }) {
     </article>
     <article className="panel chart-panel"><h2>Phân bổ theo nguồn</h2><p className="muted">Tỷ trọng của chỉ số cột theo nguồn dữ liệu.</p>
       <div className="donut-layout"><div className="donut" style={{ background: `conic-gradient(${gradient})` }}><div><strong>{distributionTotal.toLocaleString('vi-VN')}</strong><small>Tổng</small></div></div>
-        <ul className="source-legend">{distribution.map(([source, value], index) => <li key={source}><i style={{ background: colors[index % colors.length] }} /><span>{source}</span><strong>{value.toLocaleString('vi-VN')}</strong></li>)}</ul></div>
+        <ul className="source-legend">{distribution.map(([source, value], index) => <li key={source}><i style={{ background: colors[index % colors.length] }} /><span>{sourceLabel(source)}</span><strong>{value.toLocaleString('vi-VN')}</strong></li>)}</ul></div>
     </article>
   </section>;
 }

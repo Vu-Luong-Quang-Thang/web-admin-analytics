@@ -51,9 +51,12 @@ Chi tiết từng đầu việc, bàn giao và tiêu chí nghiệm thu nằm tro
 
 ### Nhập thủ công
 
-- Landing: users, sessions, page views, download clicks.
-- App: first opens, active users, downloads nếu có số chính thức.
-- Marketing: reach, impressions, clicks, spend.
+- Social organic: reach và content views của Facebook/TikTok.
+- Landing: users, sessions, page views và download clicks.
+- App: store installs, first opens, active users và registrations.
+- Attribution: installs/registrations xác định được nguồn Facebook, TikTok hoặc chiến dịch.
+- Funnel chính: social reach → Landing users → download clicks → store installs → registrations.
+- Paid Ads và payment không thuộc phạm vi hiện tại; metric cũ chỉ được giữ để tương thích dữ liệu.
 - Có thể nhập dữ liệu mẫu, nhưng bắt buộc gắn trạng thái `DEMO`.
 
 ### Dữ liệu từ app gốc

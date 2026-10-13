@@ -19,8 +19,27 @@ GA4/Firebase/Meta/Store là **nguồn để con người đọc số**, chưa đ
 
 ## Marketing
 
-- `reach`, `impressions`, `clicks`, `spend`: Page Manager đọc từ Meta Business Suite/Ads Manager.
+- `SOCIAL_ORGANIC_REACH`: số tài khoản/người được nội dung tiếp cận tự nhiên trong kỳ.
+- `SOCIAL_ORGANIC_VIEWS`: lượt xem nội dung tự nhiên trong kỳ.
+- Facebook dùng source `FACEBOOK_INSIGHTS`; TikTok dùng `TIKTOK_ANALYTICS`.
+- `scopeKey` ghi kênh, fanpage hoặc campaign slug, ví dụ `facebook`, `tiktok`, `fb_trooi_61594440328760`.
 - Khi chưa có quyền xem nguồn, không nhập số giả; nếu cần demo phải dùng verification `DEMO`.
+
+Các metric `META_REACH`, `META_IMPRESSIONS`, `META_CLICKS`, `META_SPEND` chỉ được giữ để đọc dữ liệu Ads cũ, không hiển thị trong form nhập organic hiện tại.
+
+## Funnel Facebook/TikTok → App
+
+Dashboard hiển thị năm bước cho đúng kỳ được chọn:
+
+1. `SOCIAL_ORGANIC_REACH`: tiếp cận tự nhiên.
+2. `LANDING_USERS`: người truy cập Landing.
+3. `DOWNLOAD_CLICKS`: lượt bấm tải app.
+4. `STORE_DOWNLOADS`: lượt cài đặt được Store báo cáo.
+5. `APP_REGISTRATIONS`: tài khoản đăng ký trong app.
+
+`ATTRIBUTED_STORE_INSTALLS` và `ATTRIBUTED_APP_REGISTRATIONS` chỉ dùng khi hệ thống đã lưu được nguồn qua UTM/Install Referrer. Ghi nguồn marketing trong `scopeKey`; không suy đoán nguồn từ tổng installs hoặc tổng registrations.
+
+Tỷ lệ giữa hai bước chỉ được tính khi bước trước lớn hơn 0. Funnel không chứng minh quan hệ nhân quả nếu dữ liệu chưa có attribution end-to-end.
 
 ## Total accounts
 
@@ -29,6 +48,8 @@ MVP dùng:
 ```sql
 COUNT(*) FROM users
 ```
+
+Khi nhập thủ công số đăng ký mới theo kỳ, dùng `APP_REGISTRATIONS` với source `TROOI_DATABASE`. Đây là số đăng ký trong kỳ, khác với tổng số tài khoản toàn thời gian.
 
 Schema hiện tại chỉ có `users.user_id`, chưa có cờ test/deleted/disabled. Không tuyên bố loại được các loại tài khoản này cho đến khi domain có dữ liệu tương ứng.
 

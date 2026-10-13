@@ -1,17 +1,8 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { api, type AdminPrincipal, type Entry, type EntryInput } from './api';
 import Charts from './Charts';
-
-const metrics = [
-  ['LANDING_USERS', 'Người truy cập landing page'], ['LANDING_SESSIONS', 'Phiên truy cập'],
-  ['LANDING_PAGE_VIEWS', 'Lượt xem trang'], ['DOWNLOAD_CLICKS', 'Lượt bấm tải app'],
-  ['APP_FIRST_OPENS', 'Lượt mở app lần đầu'], ['APP_ACTIVE_USERS', 'Người dùng app'],
-  ['STORE_DOWNLOADS', 'Lượt tải từ cửa hàng'], ['META_REACH', 'Tiếp cận quảng cáo'],
-  ['META_IMPRESSIONS', 'Lượt hiển thị quảng cáo'], ['META_CLICKS', 'Lượt nhấp quảng cáo'],
-  ['META_SPEND', 'Chi phí quảng cáo'],
-] as const;
-
-const sources = ['GA4_CONSOLE', 'FIREBASE_CONSOLE', 'GOOGLE_PLAY_CONSOLE', 'APP_STORE_CONNECT', 'META_BUSINESS_SUITE', 'MANUAL_OTHER'];
+import Funnel from './Funnel';
+import { metricLabel, metrics, sourceLabel, sources } from './catalog';
 const today = new Date().toISOString().slice(0, 10);
 const initial: EntryInput = {
   metricKey: 'LANDING_USERS', source: 'GA4_CONSOLE', scopeKey: null, value: 0, unit: 'COUNT',
@@ -19,7 +10,6 @@ const initial: EntryInput = {
   verification: 'MANUAL_VERIFIED', note: null,
 };
 
-function label(key: string) { return metrics.find(([value]) => value === key)?.[1] ?? key; }
 function formatValue(entry: Entry) {
   return entry.unit === 'CURRENCY'
     ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(entry.value)
@@ -50,7 +40,7 @@ export default function App() {
   }, [token, period]);
 
   useEffect(() => { void load(); }, [load]);
-  const totals = useMemo(() => summary.map((entry) => ({ ...entry, title: label(entry.metricKey) })), [summary]);
+  const totals = useMemo(() => summary.map((entry) => ({ ...entry, title: metricLabel(entry.metricKey) })), [summary]);
 
   async function passwordLogin(event: FormEvent) {
     event.preventDefault();
@@ -122,13 +112,14 @@ export default function App() {
     <section className="cards" aria-label="KPI theo kỳ">{totals.length ? totals.map((item) => <article className="kpi" key={item.entryId}>
       <span>{item.title}</span><strong>{formatValue(item)}</strong><small>{item.scopeKey || item.source}</small>
     </article>) : <div className="empty">Chưa có số liệu cho đúng kỳ này.</div>}</section>
+    <Funnel entries={summary} />
     <Charts entries={entries.filter((entry) => entry.verification !== 'DEMO')} />
     <div className="content-grid">
       {principal?.permissions.includes('analytics:write') ? <section className="panel"><h2>Nhập số liệu thủ công</h2><p className="muted">Lấy số từ nguồn chính thức rồi ghi rõ nguồn, phạm vi và kỳ báo cáo.</p>
         <form className="entry-form" onSubmit={submit}>
           <label>Chỉ số<select value={form.metricKey} onChange={(e) => setForm({ ...form, metricKey: e.target.value })}>{metrics.map(([key, name]) => <option key={key} value={key}>{name}</option>)}</select></label>
-          <label>Nguồn<select value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })}>{sources.map((source) => <option key={source}>{source}</option>)}</select></label>
-          <label>Phạm vi / fanpage<input value={form.scopeKey ?? ''} maxLength={120} placeholder="Ví dụ: fanpage-main" onChange={(e) => setForm({ ...form, scopeKey: e.target.value || null })} /></label>
+          <label>Nguồn<select value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })}>{sources.map(([key, name]) => <option key={key} value={key}>{name}</option>)}</select></label>
+          <label>Kênh / fanpage / chiến dịch<input value={form.scopeKey ?? ''} maxLength={120} placeholder="Ví dụ: facebook, tiktok, fb_trooi" onChange={(e) => setForm({ ...form, scopeKey: e.target.value || null })} /></label>
           <div className="row"><label>Giá trị<input type="number" min="0" step="0.0001" value={form.value} onChange={(e) => setForm({ ...form, value: Number(e.target.value) })} required /></label>
             <label>Đơn vị<select value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value as EntryInput['unit'] })}><option>COUNT</option><option>CURRENCY</option></select></label></div>
           <div className="row"><label>Từ ngày<input type="date" value={form.periodStart} onChange={(e) => setForm({ ...form, periodStart: e.target.value })} required /></label>
@@ -139,7 +130,7 @@ export default function App() {
         </form></section> : <section className="panel readonly"><h2>Chế độ chỉ xem</h2><p>Tài khoản của bạn có thể xem báo cáo nhưng không có quyền cập nhật số liệu.</p></section>}
       <section className="panel history"><div className="panel-title"><div><h2>Lịch sử nhập</h2><p className="muted">{entries.length} bản ghi gần nhất</p></div><button className="secondary" onClick={() => void load()} disabled={busy}>Làm mới</button></div>
         <div className="table-wrap"><table><thead><tr><th>Chỉ số</th><th>Giá trị</th><th>Kỳ</th><th>Nguồn</th><th>Xác minh</th></tr></thead>
-          <tbody>{entries.map((entry) => <tr key={entry.entryId}><td><strong>{label(entry.metricKey)}</strong><small>{entry.scopeKey}</small></td><td>{formatValue(entry)}</td><td>{entry.periodStart}<br />→ {entry.periodEnd}</td><td>{entry.source}</td><td><span className={`badge ${entry.verification.toLowerCase()}`}>{entry.verification}</span></td></tr>)}</tbody></table></div>
+          <tbody>{entries.map((entry) => <tr key={entry.entryId}><td><strong>{metricLabel(entry.metricKey)}</strong><small>{entry.scopeKey}</small></td><td>{formatValue(entry)}</td><td>{entry.periodStart}<br />→ {entry.periodEnd}</td><td>{sourceLabel(entry.source)}</td><td><span className={`badge ${entry.verification.toLowerCase()}`}>{entry.verification}</span></td></tr>)}</tbody></table></div>
       </section>
     </div>
   </div>;
