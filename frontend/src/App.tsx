@@ -28,7 +28,7 @@ function formatValue(entry: Entry) {
 
 export default function App() {
   const [token, setToken] = useState(() => sessionStorage.getItem('admin-token') ?? '');
-  const [draftToken, setDraftToken] = useState(token);
+  const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [entries, setEntries] = useState<Entry[]>([]);
   const [summary, setSummary] = useState<Entry[]>([]);
   const [form, setForm] = useState<EntryInput>(initial);
@@ -52,11 +52,15 @@ export default function App() {
   useEffect(() => { void load(); }, [load]);
   const totals = useMemo(() => summary.map((entry) => ({ ...entry, title: label(entry.metricKey) })), [summary]);
 
-  function localLogin(event: FormEvent) {
+  async function passwordLogin(event: FormEvent) {
     event.preventDefault();
-    const value = draftToken.trim();
-    if (!value) return;
-    sessionStorage.setItem('admin-token', value); setToken(value);
+    setBusy(true); setLoginError('');
+    try {
+      const result = await api.login(credentials.username, credentials.password);
+      sessionStorage.setItem('admin-token', result.token);
+      setPrincipal(result.data); setToken(result.token);
+    } catch (error) { setLoginError((error as Error).message); }
+    finally { setBusy(false); }
   }
 
   useEffect(() => {
@@ -100,10 +104,12 @@ export default function App() {
     <p>Dùng tài khoản Google của app Trọ Ơi đã được cấp quyền System Admin.</p>
     {googleClientId ? <div id="google-signin" className="google-signin" /> : <p className="notice error">Chưa cấu hình Google Client ID cho môi trường này.</p>}
     {loginError && <p className="notice error" role="alert">{loginError}</p>}
-    {import.meta.env.DEV && <details><summary>Đăng nhập local dành cho lập trình viên</summary><form onSubmit={localLogin}>
-      <label>Local admin token<input type="password" value={draftToken} onChange={(e) => setDraftToken(e.target.value)} required /></label>
-      <button>Vào môi trường local</button>
-    </form></details>}
+    <div className="login-divider"><span>hoặc</span></div>
+    <form onSubmit={passwordLogin}>
+      <label>Tên đăng nhập<input autoComplete="username" value={credentials.username} onChange={(e) => setCredentials({ ...credentials, username: e.target.value })} required /></label>
+      <label>Mật khẩu<input type="password" autoComplete="current-password" value={credentials.password} onChange={(e) => setCredentials({ ...credentials, password: e.target.value })} required /></label>
+      <button disabled={busy}>{busy ? 'Đang đăng nhập…' : 'Đăng nhập quản trị'}</button>
+    </form>
   </section></main>;
 
   return <div className="app-shell">

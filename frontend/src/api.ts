@@ -28,6 +28,9 @@ async function request<T>(path: string, token: string, init?: RequestInit): Prom
 }
 
 export const api = {
+  login: (username: string, password: string) => request<{ data: AdminPrincipal; token: string; expiresInSeconds: number }>('/api/v1/auth/login', '', {
+    method: 'POST', body: JSON.stringify({ username, password }), headers: { authorization: '' },
+  }),
   me: (token: string) => request<{ data: AdminPrincipal }>('/api/v1/auth/me', token),
   list: (token: string) => request<{ data: Entry[] }>('/api/v1/admin/statistics/entries?limit=100', token),
   summary: (token: string, from: string, to: string) => request<{ data: Entry[] }>(

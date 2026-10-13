@@ -43,16 +43,17 @@ test('PostgreSQL supports the complete manual-entry workflow', { skip: !database
 test('PostgreSQL resolves roles and permissions for a linked TrọƠi account', { skip: !databaseUrl }, async () => {
   const pool = createPool(databaseUrl);
   const userId = randomUUID();
+  const accountId = randomUUID();
   try {
-    await pool.query(`INSERT INTO admin_accounts (trooi_user_id, display_name) VALUES ($1, 'Integration Admin')`, [userId]);
-    await pool.query(`INSERT INTO admin_account_roles (trooi_user_id, role_key) VALUES ($1, 'EDITOR')`, [userId]);
+    await pool.query(`INSERT INTO admin_accounts (admin_account_id, trooi_user_id, display_name) VALUES ($1, $2, 'Integration Admin')`, [accountId, userId]);
+    await pool.query(`INSERT INTO admin_account_roles (admin_account_id, role_key) VALUES ($1, 'EDITOR')`, [accountId]);
     const principal = await resolveAdminPrincipal(pool, { userId, email: 'admin@example.test' });
     assert.deepEqual(principal?.roles, ['EDITOR']);
     assert.ok(principal?.permissions.includes('analytics:read'));
     assert.ok(principal?.permissions.includes('analytics:write'));
     assert.ok(!principal?.permissions.includes('admin:manage'));
   } finally {
-    await pool.query('DELETE FROM admin_accounts WHERE trooi_user_id = $1', [userId]);
+    await pool.query('DELETE FROM admin_accounts WHERE admin_account_id = $1', [accountId]);
     await pool.end();
   }
 });

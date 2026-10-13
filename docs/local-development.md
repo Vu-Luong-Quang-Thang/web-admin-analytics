@@ -73,6 +73,12 @@ Role và quyền:
 - `VIEWER`: chỉ xem.
 - `SYNC_MANAGER`: xem và quản lý đồng bộ tự động.
 
+Nếu đã tạo tài khoản Web Admin trước khi có tài khoản app, liên kết sau mà không mất role:
+
+```powershell
+npm run link-trooi-user -- admin <trooi-user-uuid>
+```
+
 ## 4. Production build
 
 ```powershell

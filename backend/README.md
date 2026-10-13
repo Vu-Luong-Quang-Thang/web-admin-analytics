@@ -61,6 +61,16 @@ npm run grant-admin -- <trooi-user-uuid> SUPER_ADMIN <email> <display name>
 `ADMIN_API_TOKEN` chỉ hoạt động khi không chạy `NODE_ENV=production`, nhằm phục vụ local
 development. Không commit token hay ID người dùng thật.
 
+Tạo trước tài khoản Web Admin độc lập và liên kết với app sau:
+
+```powershell
+npm run create-local-admin -- admin
+npm run link-trooi-user -- admin <trooi-user-uuid>
+```
+
+Role `SUPER_ADMIN` không hết hạn. Phiên đăng nhập bằng mật khẩu hết hạn sau 8 giờ và phải đăng
+nhập lại; điều này không xóa tài khoản hoặc quyền.
+
 ## Chuẩn bị deploy
 
 Lệnh `npm start` tự chạy các file migration SQL trước khi mở API. Migration hiện tại có thể chạy

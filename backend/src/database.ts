@@ -52,11 +52,11 @@ export async function resolveAdminPrincipal(pool: Pool, identity: IdentityPrinci
        coalesce(array_agg(DISTINCT ar.role_key) FILTER (WHERE ar.role_key IS NOT NULL), '{}') AS roles,
        coalesce(array_agg(DISTINCT rp.permission_key) FILTER (WHERE rp.permission_key IS NOT NULL), '{}') AS permissions
      FROM admin_accounts a
-     LEFT JOIN admin_account_roles ar ON ar.trooi_user_id = a.trooi_user_id
+     LEFT JOIN admin_account_roles ar ON ar.admin_account_id = a.admin_account_id
      LEFT JOIN admin_role_permissions rp ON rp.role_key = ar.role_key
-     WHERE a.trooi_user_id = $1 AND a.status = 'ACTIVE'
-     GROUP BY a.trooi_user_id, a.display_name, a.email`,
-    [identity.userId],
+     WHERE (a.admin_account_id = $1 OR a.trooi_user_id = $2) AND a.status = 'ACTIVE'
+     GROUP BY a.admin_account_id, a.trooi_user_id, a.display_name, a.email`,
+    [identity.accountId ?? null, identity.userId],
   );
   const row = result.rows[0];
   if (!row) return null;
@@ -67,6 +67,23 @@ export async function resolveAdminPrincipal(pool: Pool, identity: IdentityPrinci
     roles: row.roles,
     permissions: row.permissions,
   };
+}
+
+export async function passwordAccount(pool: Pool, username: string) {
+  const result = await pool.query(
+    `SELECT admin_account_id, trooi_user_id, username, password_hash, email, display_name
+     FROM admin_accounts WHERE lower(username) = lower($1) AND status = 'ACTIVE'`,
+    [username],
+  );
+  return result.rows[0] ?? null;
+}
+
+export async function createSession(pool: Pool, sessionId: string, accountId: string, tokenHash: string) {
+  await pool.query(
+    `INSERT INTO admin_sessions (session_id, admin_account_id, token_hash, expires_at)
+     VALUES ($1, $2, $3, now() + interval '8 hours')`,
+    [sessionId, accountId, tokenHash],
+  );
 }
 
 export async function insertEntry(pool: Pool, id: string, actorId: string, entry: ManualEntryInput) {

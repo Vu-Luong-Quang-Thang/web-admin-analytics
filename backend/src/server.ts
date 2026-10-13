@@ -1,11 +1,12 @@
 import { randomUUID } from 'node:crypto';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
-import { authenticate } from './auth.js';
-import { createPool, findEntry, getSummary, insertEntry, listEntries, resolveAdminPrincipal, updateEntry } from './database.js';
+import { authenticate, newSessionToken, sessionTokenHash, verifyPassword } from './auth.js';
+import { createPool, createSession, findEntry, getSummary, insertEntry, listEntries, passwordAccount, resolveAdminPrincipal, updateEntry } from './database.js';
 import { ValidationError, validateEntry, validateFilters, validateSummaryPeriod } from './validation.js';
 
 const pool = createPool();
 const prefix = '/api/v1/admin/statistics/entries';
+const loginAttempts = new Map<string, { count: number; resetAt: number }>();
 
 function json(response: ServerResponse, status: number, body: unknown): void {
   response.writeHead(status, {
@@ -48,7 +49,43 @@ async function handler(request: IncomingMessage, response: ServerResponse): Prom
     json(response, 200, { status: 'ok' });
     return;
   }
-  const identity = await authenticate(request);
+  if (request.method === 'POST' && url.pathname === '/api/v1/auth/login') {
+    const key = request.socket.remoteAddress ?? 'unknown';
+    const now = Date.now();
+    const attempt = loginAttempts.get(key);
+    if (attempt && attempt.resetAt > now && attempt.count >= 5) {
+      json(response, 429, { error: 'Too many login attempts. Try again later.' });
+      return;
+    }
+    try {
+      const body = await readJson(request) as Record<string, unknown>;
+      const username = typeof body.username === 'string' ? body.username.trim() : '';
+      const password = typeof body.password === 'string' ? body.password : '';
+      const account = username ? await passwordAccount(pool, username) : null;
+      const valid = account?.password_hash && await verifyPassword(password, account.password_hash);
+      if (!valid) {
+        loginAttempts.set(key, { count: attempt?.resetAt && attempt.resetAt > now ? attempt.count + 1 : 1, resetAt: now + 60_000 });
+        json(response, 401, { error: 'Tên đăng nhập hoặc mật khẩu không đúng' });
+        return;
+      }
+      loginAttempts.delete(key);
+      const token = newSessionToken();
+      await createSession(pool, randomUUID(), account.admin_account_id, sessionTokenHash(token));
+      const principal = await resolveAdminPrincipal(pool, {
+        accountId: account.admin_account_id,
+        userId: account.trooi_user_id ?? account.admin_account_id,
+        email: account.email ?? undefined,
+        name: account.display_name ?? undefined,
+      });
+      json(response, 200, { data: principal, token, expiresInSeconds: 28_800 });
+      return;
+    } catch (error) {
+      if (error instanceof ValidationError) json(response, 400, { error: error.message });
+      else json(response, 500, { error: 'Internal server error' });
+      return;
+    }
+  }
+  const identity = await authenticate(request, pool);
   if (!identity) {
     json(response, 401, { error: 'Unauthorized' });
     return;

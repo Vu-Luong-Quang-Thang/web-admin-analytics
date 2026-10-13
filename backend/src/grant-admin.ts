@@ -12,8 +12,8 @@ const pool = createPool();
 try {
   await pool.query('BEGIN');
   await pool.query(
-    `INSERT INTO admin_accounts (trooi_user_id, email, display_name)
-     VALUES ($1, $2, $3)
+    `INSERT INTO admin_accounts (admin_account_id, trooi_user_id, email, display_name)
+     VALUES ($1, $1, $2, $3)
      ON CONFLICT (trooi_user_id) DO UPDATE SET
        email = coalesce(EXCLUDED.email, admin_accounts.email),
        display_name = coalesce(EXCLUDED.display_name, admin_accounts.display_name),
@@ -21,7 +21,8 @@ try {
     [userId, email || null, nameParts.join(' ') || null],
   );
   await pool.query(
-    `INSERT INTO admin_account_roles (trooi_user_id, role_key) VALUES ($1, $2)
+    `INSERT INTO admin_account_roles (admin_account_id, role_key)
+     SELECT admin_account_id, $2 FROM admin_accounts WHERE trooi_user_id = $1
      ON CONFLICT DO NOTHING`,
     [userId, role],
   );
