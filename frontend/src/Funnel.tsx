@@ -2,7 +2,7 @@ import type { Entry } from './api';
 
 const steps = [
   ['SOCIAL_ORGANIC_REACH', 'Tiếp cận'],
-  ['LANDING_USERS', 'Truy cập Landing'],
+  ['LANDING_USERS', 'Truy cập Landing từ Facebook và TikTok'],
   ['DOWNLOAD_CLICKS', 'Bấm tải'],
   ['STORE_DOWNLOADS', 'Cài app'],
   ['APP_REGISTRATIONS', 'Đăng ký'],

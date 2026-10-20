@@ -9,6 +9,8 @@ const initial: EntryInput = {
   periodStart: today, periodEnd: today, timezone: 'Asia/Ho_Chi_Minh',
   verification: 'MANUAL_VERIFIED', note: null,
 };
+const currencyMetrics = new Set(['APP_REVENUE']);
+const tiktokMetrics = new Set(['TIKTOK_FOLLOWERS', 'TIKTOK_LIKES', 'TIKTOK_VIDEO_VIEWS']);
 
 function formatValue(entry: Entry) {
   return entry.unit === 'CURRENCY'
@@ -117,11 +119,11 @@ export default function App() {
     <div className="content-grid">
       {principal?.permissions.includes('analytics:write') ? <section className="panel"><h2>Nhập số liệu thủ công</h2><p className="muted">Lấy số từ nguồn chính thức rồi ghi rõ nguồn, phạm vi và kỳ báo cáo.</p>
         <form className="entry-form" onSubmit={submit}>
-          <label>Chỉ số<select value={form.metricKey} onChange={(e) => setForm({ ...form, metricKey: e.target.value })}>{metrics.map(([key, name]) => <option key={key} value={key}>{name}</option>)}</select></label>
+          <label>Chỉ số<select value={form.metricKey} onChange={(e) => setForm({ ...form, metricKey: e.target.value, source: tiktokMetrics.has(e.target.value) ? 'TIKTOK_ANALYTICS' : form.source, unit: currencyMetrics.has(e.target.value) ? 'CURRENCY' : 'COUNT' })}>{metrics.map(([key, name]) => <option key={key} value={key}>{name}</option>)}</select></label>
           <label>Nguồn<select value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })}>{sources.map(([key, name]) => <option key={key} value={key}>{name}</option>)}</select></label>
           <label>Kênh / fanpage / chiến dịch<input value={form.scopeKey ?? ''} maxLength={120} placeholder="Ví dụ: facebook, tiktok, fb_trooi" onChange={(e) => setForm({ ...form, scopeKey: e.target.value || null })} /></label>
           <div className="row"><label>Giá trị<input type="number" min="0" step="0.0001" value={form.value} onChange={(e) => setForm({ ...form, value: Number(e.target.value) })} required /></label>
-            <label>Đơn vị<select value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value as EntryInput['unit'] })}><option>COUNT</option><option>CURRENCY</option></select></label></div>
+            <label>Đơn vị<select value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value as EntryInput['unit'] })}><option value="COUNT">Số lượng</option><option value="CURRENCY">VND</option></select></label></div>
           <div className="row"><label>Từ ngày<input type="date" value={form.periodStart} onChange={(e) => setForm({ ...form, periodStart: e.target.value })} required /></label>
             <label>Đến ngày<input type="date" value={form.periodEnd} onChange={(e) => setForm({ ...form, periodEnd: e.target.value })} required /></label></div>
           <label>Xác minh<select value={form.verification} onChange={(e) => setForm({ ...form, verification: e.target.value })}><option>MANUAL_VERIFIED</option><option>MANUAL_UNVERIFIED</option><option>DEMO</option></select></label>

@@ -24,6 +24,21 @@ test('accepts organic social and attributed registration metrics', () => {
   assert.equal(validateEntry({ ...valid, metricKey: 'ATTRIBUTED_APP_REGISTRATIONS', source: 'TROOI_DATABASE', scopeKey: 'facebook' }).source, 'TROOI_DATABASE');
 });
 
+test('accepts manually entered app revenue metrics', () => {
+  assert.equal(validateEntry({ ...valid, metricKey: 'APP_TRANSACTIONS', source: 'TROOI_DATABASE' }).metricKey, 'APP_TRANSACTIONS');
+  assert.equal(validateEntry({ ...valid, metricKey: 'APP_PAYING_USERS', source: 'TROOI_DATABASE' }).metricKey, 'APP_PAYING_USERS');
+  assert.equal(validateEntry({ ...valid, metricKey: 'APP_REVENUE', source: 'TROOI_DATABASE', unit: 'CURRENCY' }).unit, 'CURRENCY');
+  assert.throws(() => validateEntry({ ...valid, metricKey: 'APP_REVENUE', source: 'TROOI_DATABASE', unit: 'COUNT' }), ValidationError);
+  assert.throws(() => validateEntry({ ...valid, metricKey: 'APP_TRANSACTIONS', source: 'TROOI_DATABASE', unit: 'CURRENCY' }), ValidationError);
+});
+
+test('accepts manually entered TikTok profile metrics', () => {
+  for (const metricKey of ['TIKTOK_FOLLOWERS', 'TIKTOK_LIKES', 'TIKTOK_VIDEO_VIEWS'] as const) {
+    assert.equal(validateEntry({ ...valid, metricKey, source: 'TIKTOK_ANALYTICS' }).source, 'TIKTOK_ANALYTICS');
+    assert.throws(() => validateEntry({ ...valid, metricKey, source: 'TIKTOK_ANALYTICS', unit: 'CURRENCY' }), ValidationError);
+  }
+});
+
 test('validates filters and pagination', () => {
   assert.deepEqual(validateFilters(new URLSearchParams('metricKey=META_REACH&limit=20&offset=10')), {
     metricKey: 'META_REACH', limit: 20, offset: 10,

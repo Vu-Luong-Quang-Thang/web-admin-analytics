@@ -1,6 +1,9 @@
 export const metrics = [
   ['SOCIAL_ORGANIC_REACH', 'Tiếp cận tự nhiên'],
   ['SOCIAL_ORGANIC_VIEWS', 'Lượt xem nội dung tự nhiên'],
+  ['TIKTOK_FOLLOWERS', 'Người theo dõi TikTok'],
+  ['TIKTOK_LIKES', 'Tổng lượt thích TikTok'],
+  ['TIKTOK_VIDEO_VIEWS', 'Lượt xem video TikTok'],
   ['LANDING_USERS', 'Người truy cập landing page'],
   ['LANDING_SESSIONS', 'Phiên truy cập landing page'],
   ['LANDING_PAGE_VIEWS', 'Lượt xem landing page'],
@@ -11,6 +14,9 @@ export const metrics = [
   ['APP_ACTIVE_USERS', 'Người dùng app'],
   ['APP_REGISTRATIONS', 'Tài khoản đăng ký'],
   ['ATTRIBUTED_APP_REGISTRATIONS', 'Tài khoản đăng ký xác định được nguồn'],
+  ['APP_TRANSACTIONS', 'Số lượng giao dịch từ app'],
+  ['APP_PAYING_USERS', 'Người dùng trả phí'],
+  ['APP_REVENUE', 'Thu nhập từ app (VND)'],
 ] as const;
 
 export const legacyPaidMetrics = [

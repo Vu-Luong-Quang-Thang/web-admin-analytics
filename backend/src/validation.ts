@@ -79,12 +79,22 @@ export function validateEntry(value: unknown): ManualEntryInput {
   if (note !== null && note.length > 500) throw new ValidationError('note must not exceed 500 characters');
   const timezone = body.timezone ?? 'Asia/Ho_Chi_Minh';
   if (timezone !== 'Asia/Ho_Chi_Minh') throw new ValidationError('timezone is not supported');
+  const metricKey = enumValue('metricKey', body.metricKey, metricKeys);
+  const unit = enumValue('unit', body.unit, units);
+  if (metricKey === 'APP_REVENUE' && unit !== 'CURRENCY') {
+    throw new ValidationError('APP_REVENUE must use CURRENCY (VND)');
+  }
+  if ((metricKey === 'APP_TRANSACTIONS' || metricKey === 'APP_PAYING_USERS'
+    || metricKey === 'TIKTOK_FOLLOWERS' || metricKey === 'TIKTOK_LIKES'
+    || metricKey === 'TIKTOK_VIDEO_VIEWS') && unit !== 'COUNT') {
+    throw new ValidationError(`${metricKey} must use COUNT`);
+  }
   return {
-    metricKey: enumValue('metricKey', body.metricKey, metricKeys),
+    metricKey,
     source: enumValue('source', body.source, sources),
     scopeKey,
     value: body.value,
-    unit: enumValue('unit', body.unit, units),
+    unit,
     periodStart,
     periodEnd,
     timezone,
