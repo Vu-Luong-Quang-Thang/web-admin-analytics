@@ -16,7 +16,15 @@ label { display: grid; gap: .4rem; color: #40544c; font-size: .85rem; font-weigh
 input, select, textarea { min-width: 0; width: 100%; border: 1px solid #ccd8d2; border-radius: 9px; padding: .72rem; background: white; color: #1f2a25; }
 input:focus, select:focus, textarea:focus { outline: 3px solid #9ad4bc; border-color: #15704d; }
 textarea { min-height: 88px; resize: vertical; }
-.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: .8rem; margin-bottom: 1rem; }
+.kpi-report { display: grid; gap: 1rem; margin-bottom: 1rem; }
+.kpi-group { padding: 1.2rem; border: 1px solid #dce5e0; border-radius: 16px; background: #f9fbf8; }
+.kpi-group h2 { margin-bottom: 1rem; font-size: 1.05rem; color: #315047; }
+.kpi-group h2::before { content: ''; display: inline-block; width: .55rem; height: .55rem; margin-right: .55rem; border-radius: 50%; background: #5d8fdd; vertical-align: .08rem; }
+.kpi-group.facebook h2::before { background: #1877f2; }
+.kpi-group.tiktok h2::before { background: #111; }
+.kpi-group.app h2::before { background: #156b4a; }
+.kpi-group.revenue h2::before { background: #ef8b45; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: .8rem; }
 .kpi, .empty { min-height: 130px; padding: 1.2rem; border: 1px solid #dce5e0; border-radius: 16px; background: white; box-shadow: 0 8px 24px #3556480a; }
 .kpi span, .kpi small { color: #6a7d75; display: block; }.kpi strong { display: block; margin: .4rem 0; font-size: 2rem; }
 .funnel-panel { margin-bottom: 1rem; }.funnel-list { list-style: none; display: grid; grid-template-columns: repeat(5, 1fr); gap: .8rem; padding: 0; margin: 1.2rem 0 0; }.funnel-label { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .45rem; }.funnel-label span { display: grid; place-items: center; width: 1.55rem; height: 1.55rem; border-radius: 50%; background: #e3eee8; color: #156b4a; font-size: .72rem; }.funnel-label strong { font-size: .8rem; }.funnel-label b { font-size: 1.05rem; }.funnel-track { height: .55rem; margin: .65rem 0 .35rem; overflow: hidden; border-radius: 999px; background: #edf1ef; }.funnel-track i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #156b4a, #61b88f); }.funnel-list small { color: #718179; font-size: .7rem; }

@@ -11,6 +11,25 @@ const initial: EntryInput = {
 };
 const currencyMetrics = new Set(['APP_REVENUE']);
 const tiktokMetrics = new Set(['TIKTOK_FOLLOWERS', 'TIKTOK_LIKES', 'TIKTOK_VIDEO_VIEWS']);
+const landingMetrics = new Set(['LANDING_USERS', 'LANDING_SESSIONS', 'LANDING_PAGE_VIEWS']);
+const revenueMetrics = new Set(['APP_TRANSACTIONS', 'APP_PAYING_USERS', 'APP_REVENUE']);
+const facebookMetrics = new Set(['SOCIAL_ORGANIC_REACH', 'SOCIAL_ORGANIC_VIEWS', 'META_REACH', 'META_IMPRESSIONS', 'META_CLICKS', 'META_SPEND']);
+const kpiGroups = [
+  ['landing', 'Landing Page'],
+  ['facebook', 'Facebook'],
+  ['tiktok', 'TikTok'],
+  ['app', 'Ứng dụng'],
+  ['revenue', 'Doanh thu'],
+] as const;
+
+function kpiGroup(entry: Entry) {
+  if (revenueMetrics.has(entry.metricKey)) return 'revenue';
+  if (entry.metricKey === 'DOWNLOAD_CLICKS') return entry.scopeKey?.toLowerCase().includes('landing') ? 'landing' : 'app';
+  if (landingMetrics.has(entry.metricKey)) return 'landing';
+  if (tiktokMetrics.has(entry.metricKey) || entry.source === 'TIKTOK_ANALYTICS') return 'tiktok';
+  if (facebookMetrics.has(entry.metricKey) || entry.source === 'FACEBOOK_INSIGHTS' || entry.source === 'META_BUSINESS_SUITE') return 'facebook';
+  return 'app';
+}
 
 function formatValue(entry: Entry) {
   return entry.unit === 'CURRENCY'
@@ -111,9 +130,15 @@ export default function App() {
     <section className="period-bar"><div><h2>Kỳ báo cáo</h2><p>Chọn đúng kỳ đã nhập để xem KPI, không cộng kỳ chồng lấn.</p></div>
       <label>Từ ngày<input type="date" value={period.from} onChange={(e) => setPeriod({ ...period, from: e.target.value })} /></label>
       <label>Đến ngày<input type="date" value={period.to} onChange={(e) => setPeriod({ ...period, to: e.target.value })} /></label></section>
-    <section className="cards" aria-label="KPI theo kỳ">{totals.length ? totals.map((item) => <article className="kpi" key={item.entryId}>
-      <span>{item.title}</span><strong>{formatValue(item)}</strong><small>{item.scopeKey || item.source}</small>
-    </article>) : <div className="empty">Chưa có số liệu cho đúng kỳ này.</div>}</section>
+    <section className="kpi-report" aria-label="KPI theo kỳ">{totals.length ? kpiGroups.map(([key, title]) => {
+      const items = totals.filter((item) => kpiGroup(item) === key);
+      return items.length ? <section className={`kpi-group ${key}`} key={key} aria-labelledby={`kpi-${key}`}>
+        <h2 id={`kpi-${key}`}>{title}</h2>
+        <div className="cards">{items.map((item) => <article className="kpi" key={item.entryId}>
+          <span>{item.title}</span><strong>{formatValue(item)}</strong><small>{item.scopeKey || sourceLabel(item.source)}</small>
+        </article>)}</div>
+      </section> : null;
+    }) : <div className="empty">Chưa có số liệu cho đúng kỳ này.</div>}</section>
     <Funnel entries={summary} />
     <Charts entries={entries.filter((entry) => entry.verification !== 'DEMO')} />
     <div className="content-grid">
