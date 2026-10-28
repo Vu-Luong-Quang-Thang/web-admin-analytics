@@ -14,6 +14,10 @@ export type Entry = {
 
 export type EntryInput = Omit<Entry, 'entryId' | 'updatedAt'> & { timezone: string };
 export type AdminPrincipal = { userId: string; email?: string; name?: string; roles: string[]; permissions: string[] };
+export type SummaryResponse = {
+  data: Entry[];
+  live: { status: 'ok' | 'unavailable'; message?: string };
+};
 
 const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3200').replace(/\/$/, '');
 
@@ -33,7 +37,7 @@ export const api = {
   }),
   me: (token: string) => request<{ data: AdminPrincipal }>('/api/v1/auth/me', token),
   list: (token: string) => request<{ data: Entry[] }>('/api/v1/admin/statistics/entries?limit=100', token),
-  summary: (token: string, from: string, to: string) => request<{ data: Entry[] }>(
+  summary: (token: string, from: string, to: string) => request<SummaryResponse>(
     `/api/v1/admin/statistics/summary?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`, token,
   ),
   create: (token: string, entry: EntryInput) => request<{ data: Entry }>('/api/v1/admin/statistics/entries', token, {

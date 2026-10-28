@@ -1,6 +1,13 @@
 # Admin Analytics API
 
-Backend độc lập của `web-admin-analytics`. Backend này lưu số liệu nhập thủ công trong database riêng và không phụ thuộc code runtime của `TroOi-Project`.
+Backend của `web-admin-analytics`. Backend lưu số liệu nhập thủ công trong database riêng; ba KPI `APP_ACTIVE_USERS`, `APP_PAYING_USERS` và `APP_REVENUE` được đọc server-to-server từ `finance-backend` qua `TROOI_FINANCE_API_URL`.
+
+Frontend không kết nối PostgreSQL hoặc `finance-backend` trực tiếp. Cấu hình cùng một service token ở hai phía:
+
+- Web Admin: `TROOI_FINANCE_API_TOKEN`
+- `finance-backend`: `ADMIN_ANALYTICS_API_TOKEN`
+
+`TROOI_FINANCE_API_URL` có thể là URL tunnel HTTPS của máy chạy `finance-backend`. Khi tunnel hoặc máy đó dừng, summary vẫn trả các KPI thủ công khác và đánh dấu nguồn live không khả dụng.
 
 ## Chạy local
 

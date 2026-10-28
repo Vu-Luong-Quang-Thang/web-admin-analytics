@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Web Admin Analytics API
   version: 0.2.0
-  description: API nhập số liệu thống kê thủ công. Không kết nối runtime của TroOi-Project.
+  description: API nhập số liệu thủ công và đọc KPI người dùng/doanh thu qua finance-backend.
 servers:
   - url: http://localhost:3200
 security:
@@ -69,7 +69,7 @@ paths:
   /api/v1/admin/statistics/summary:
     get:
       summary: Lấy các KPI có kỳ báo cáo khớp chính xác
-      description: Không cộng các kỳ chồng lấn để tránh làm sai số. Bản ghi DEMO mặc định bị loại.
+      description: Không cộng các kỳ chồng lấn. Ba KPI live được đọc qua tunnel từ finance-backend; bản ghi thủ công tương ứng bị loại.
       parameters:
         - { name: from, in: query, required: true, schema: { type: string, format: date } }
         - { name: to, in: query, required: true, schema: { type: string, format: date } }

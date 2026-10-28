@@ -24,11 +24,11 @@ test('accepts organic social and attributed registration metrics', () => {
   assert.equal(validateEntry({ ...valid, metricKey: 'ATTRIBUTED_APP_REGISTRATIONS', source: 'TROOI_DATABASE', scopeKey: 'facebook' }).source, 'TROOI_DATABASE');
 });
 
-test('accepts manually entered app revenue metrics', () => {
+test('accepts manual transaction counts but reserves live finance metrics for the API', () => {
   assert.equal(validateEntry({ ...valid, metricKey: 'APP_TRANSACTIONS', source: 'TROOI_DATABASE' }).metricKey, 'APP_TRANSACTIONS');
-  assert.equal(validateEntry({ ...valid, metricKey: 'APP_PAYING_USERS', source: 'TROOI_DATABASE' }).metricKey, 'APP_PAYING_USERS');
-  assert.equal(validateEntry({ ...valid, metricKey: 'APP_REVENUE', source: 'TROOI_DATABASE', unit: 'CURRENCY' }).unit, 'CURRENCY');
-  assert.throws(() => validateEntry({ ...valid, metricKey: 'APP_REVENUE', source: 'TROOI_DATABASE', unit: 'COUNT' }), ValidationError);
+  for (const metricKey of ['APP_ACTIVE_USERS', 'APP_PAYING_USERS', 'APP_REVENUE']) {
+    assert.throws(() => validateEntry({ ...valid, metricKey, source: 'TROOI_DATABASE', unit: metricKey === 'APP_REVENUE' ? 'CURRENCY' : 'COUNT' }), ValidationError);
+  }
   assert.throws(() => validateEntry({ ...valid, metricKey: 'APP_TRANSACTIONS', source: 'TROOI_DATABASE', unit: 'CURRENCY' }), ValidationError);
 });
 

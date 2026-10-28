@@ -80,6 +80,9 @@ export function validateEntry(value: unknown): ManualEntryInput {
   const timezone = body.timezone ?? 'Asia/Ho_Chi_Minh';
   if (timezone !== 'Asia/Ho_Chi_Minh') throw new ValidationError('timezone is not supported');
   const metricKey = enumValue('metricKey', body.metricKey, metricKeys);
+  if (['APP_ACTIVE_USERS', 'APP_PAYING_USERS', 'APP_REVENUE'].includes(metricKey)) {
+    throw new ValidationError(`${metricKey} is supplied automatically by the finance API`);
+  }
   const unit = enumValue('unit', body.unit, units);
   if (metricKey === 'APP_REVENUE' && unit !== 'CURRENCY') {
     throw new ValidationError('APP_REVENUE must use CURRENCY (VND)');

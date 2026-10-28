@@ -12,7 +12,8 @@ const initial: EntryInput = {
 const currencyMetrics = new Set(['APP_REVENUE']);
 const tiktokMetrics = new Set(['TIKTOK_FOLLOWERS', 'TIKTOK_LIKES', 'TIKTOK_VIDEO_VIEWS']);
 const landingMetrics = new Set(['LANDING_USERS', 'LANDING_SESSIONS', 'LANDING_PAGE_VIEWS']);
-const revenueMetrics = new Set(['APP_TRANSACTIONS', 'APP_PAYING_USERS', 'APP_REVENUE']);
+const automaticMetrics = new Set(['APP_ACTIVE_USERS', 'APP_PAYING_USERS', 'APP_REVENUE']);
+const revenueMetrics = new Set(['APP_ACTIVE_USERS', 'APP_TRANSACTIONS', 'APP_PAYING_USERS', 'APP_REVENUE']);
 const facebookMetrics = new Set(['SOCIAL_ORGANIC_REACH', 'SOCIAL_ORGANIC_VIEWS', 'META_REACH', 'META_IMPRESSIONS', 'META_CLICKS', 'META_SPEND']);
 const kpiGroups = [
   ['landing', 'Landing Page'],
@@ -56,6 +57,7 @@ export default function App() {
     try {
       const [me, list, cards] = await Promise.all([api.me(token), api.list(token), api.summary(token, period.from, period.to)]);
       setPrincipal(me.data); setEntries(list.data); setSummary(cards.data);
+      if (cards.live.status === 'unavailable') setMessage(`Dữ liệu tự động tạm thời không khả dụng: ${cards.live.message}`);
     } catch (error) { setMessage((error as Error).message); }
     finally { setBusy(false); }
   }, [token, period]);
@@ -142,9 +144,9 @@ export default function App() {
     <Funnel entries={summary} />
     <Charts entries={entries.filter((entry) => entry.verification !== 'DEMO')} />
     <div className="content-grid">
-      {principal?.permissions.includes('analytics:write') ? <section className="panel"><h2>Nhập số liệu thủ công</h2><p className="muted">Lấy số từ nguồn chính thức rồi ghi rõ nguồn, phạm vi và kỳ báo cáo.</p>
+      {principal?.permissions.includes('analytics:write') ? <section className="panel"><h2>Nhập số liệu thủ công</h2><p className="muted">Lấy số từ nguồn chính thức rồi ghi rõ nguồn, phạm vi và kỳ báo cáo. Người dùng, người dùng trả phí và thu nhập được lấy tự động qua API.</p>
         <form className="entry-form" onSubmit={submit}>
-          <label>Chỉ số<select value={form.metricKey} onChange={(e) => setForm({ ...form, metricKey: e.target.value, source: tiktokMetrics.has(e.target.value) ? 'TIKTOK_ANALYTICS' : form.source, unit: currencyMetrics.has(e.target.value) ? 'CURRENCY' : 'COUNT' })}>{metrics.map(([key, name]) => <option key={key} value={key}>{name}</option>)}</select></label>
+          <label>Chỉ số<select value={form.metricKey} onChange={(e) => setForm({ ...form, metricKey: e.target.value, source: tiktokMetrics.has(e.target.value) ? 'TIKTOK_ANALYTICS' : form.source, unit: currencyMetrics.has(e.target.value) ? 'CURRENCY' : 'COUNT' })}>{metrics.filter(([key]) => !automaticMetrics.has(key)).map(([key, name]) => <option key={key} value={key}>{name}</option>)}</select></label>
           <label>Nguồn<select value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })}>{sources.map(([key, name]) => <option key={key} value={key}>{name}</option>)}</select></label>
           <label>Kênh / fanpage / chiến dịch<input value={form.scopeKey ?? ''} maxLength={120} placeholder="Ví dụ: facebook, tiktok, fb_trooi" onChange={(e) => setForm({ ...form, scopeKey: e.target.value || null })} /></label>
           <div className="row"><label>Giá trị<input type="number" min="0" step="0.0001" value={form.value} onChange={(e) => setForm({ ...form, value: Number(e.target.value) })} required /></label>

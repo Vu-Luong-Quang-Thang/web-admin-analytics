@@ -3,6 +3,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from 'node:ht
 import { authenticate, newSessionToken, sessionTokenHash, verifyPassword } from './auth.js';
 import { createPool, createSession, findEntry, getSummary, insertEntry, listEntries, passwordAccount, resolveAdminPrincipal, updateEntry } from './database.js';
 import { ValidationError, validateEntry, validateFilters, validateSummaryPeriod } from './validation.js';
+import { financeEntries, withoutAutomaticManualEntries } from './finance.js';
 
 const pool = createPool();
 const prefix = '/api/v1/admin/statistics/entries';
@@ -131,9 +132,21 @@ async function handler(request: IncomingMessage, response: ServerResponse): Prom
     }
     if (request.method === 'GET' && url.pathname === '/api/v1/admin/statistics/summary') {
       const period = validateSummaryPeriod(url.searchParams);
-      json(response, 200, { period: { from: period.from, to: period.to }, data: await getSummary(
-        pool, period.from, period.to, period.includeDemo,
-      ) });
+      const manual = withoutAutomaticManualEntries(await getSummary(pool, period.from, period.to, period.includeDemo));
+      try {
+        json(response, 200, {
+          period: { from: period.from, to: period.to },
+          data: [...manual, ...await financeEntries(period.from, period.to)],
+          live: { status: 'ok' },
+        });
+      } catch (error) {
+        console.error('Finance API unavailable');
+        json(response, 200, {
+          period: { from: period.from, to: period.to },
+          data: manual,
+          live: { status: 'unavailable', message: (error as Error).message },
+        });
+      }
       return;
     }
     const match = url.pathname.match(/^\/api\/v1\/admin\/statistics\/entries\/([0-9a-f-]{36})$/i);
