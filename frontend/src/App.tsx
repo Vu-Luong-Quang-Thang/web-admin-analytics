@@ -61,7 +61,7 @@ export default function App() {
   }, [token, period]);
 
   useEffect(() => { void load(); }, [load]);
-  const totals = useMemo(() => summary.map((entry) => ({ ...entry, title: metricLabel(entry.metricKey) })), [summary]);
+  const totals = useMemo(() => summary.filter((entry) => entry.metricKey !== 'DOWNLOAD_CLICKS').map((entry) => ({ ...entry, title: metricLabel(entry.metricKey) })), [summary]);
 
   async function passwordLogin(event: FormEvent) {
     event.preventDefault();
