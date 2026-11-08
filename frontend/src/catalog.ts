@@ -9,14 +9,12 @@ export const metrics = [
   ['LANDING_PAGE_VIEWS', 'Lượt xem landing page'],
   ['DOWNLOAD_CLICKS', 'Lượt bấm tải app'],
   ['STORE_DOWNLOADS', 'Lượt cài đặt từ cửa hàng'],
-  ['ATTRIBUTED_STORE_INSTALLS', 'Lượt cài đặt xác định được nguồn'],
   ['APP_FIRST_OPENS', 'Lượt mở app lần đầu'],
   ['APP_ACTIVE_USERS', 'Người dùng app'],
   ['APP_REGISTRATIONS', 'Tài khoản đăng ký'],
-  ['ATTRIBUTED_APP_REGISTRATIONS', 'Tài khoản đăng ký xác định được nguồn'],
   ['APP_TRANSACTIONS', 'Số lượng giao dịch từ app'],
   ['APP_PAYING_USERS', 'Người dùng trả phí'],
-  ['APP_REVENUE', 'Thu nhập từ app (VND)'],
+  ['APP_REVENUE', 'Tổng giá trị giao dịch (VND)'],
 ] as const;
 
 export const legacyPaidMetrics = [
