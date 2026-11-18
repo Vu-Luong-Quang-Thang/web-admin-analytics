@@ -39,6 +39,11 @@ test('accepts manually entered TikTok profile metrics', () => {
   }
 });
 
+test('accepts app review counts from an app store', () => {
+  assert.equal(validateEntry({ ...valid, metricKey: 'APP_REVIEWS', source: 'GOOGLE_PLAY_CONSOLE' }).metricKey, 'APP_REVIEWS');
+  assert.throws(() => validateEntry({ ...valid, metricKey: 'APP_REVIEWS', source: 'APP_STORE_CONNECT', unit: 'CURRENCY' }), ValidationError);
+});
+
 test('validates filters and pagination', () => {
   assert.deepEqual(validateFilters(new URLSearchParams('metricKey=META_REACH&limit=20&offset=10')), {
     metricKey: 'META_REACH', limit: 20, offset: 10,

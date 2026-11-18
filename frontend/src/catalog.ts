@@ -10,6 +10,7 @@ export const metrics = [
   ['DOWNLOAD_CLICKS', 'Lượt bấm tải app'],
   ['STORE_DOWNLOADS', 'Lượt cài đặt từ cửa hàng'],
   ['ATTRIBUTED_STORE_INSTALLS', 'Lượt cài đặt xác định được nguồn'],
+  ['APP_REVIEWS', 'Số lượng đánh giá về app'],
   ['APP_FIRST_OPENS', 'Lượt mở app lần đầu'],
   ['APP_ACTIVE_USERS', 'Người dùng app'],
   ['APP_REGISTRATIONS', 'Tài khoản đăng ký'],

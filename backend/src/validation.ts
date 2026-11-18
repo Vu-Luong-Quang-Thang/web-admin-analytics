@@ -85,6 +85,7 @@ export function validateEntry(value: unknown): ManualEntryInput {
     throw new ValidationError('APP_REVENUE must use CURRENCY (VND)');
   }
   if ((metricKey === 'APP_TRANSACTIONS' || metricKey === 'APP_PAYING_USERS'
+    || metricKey === 'APP_REVIEWS'
     || metricKey === 'TIKTOK_FOLLOWERS' || metricKey === 'TIKTOK_LIKES'
     || metricKey === 'TIKTOK_VIDEO_VIEWS') && unit !== 'COUNT') {
     throw new ValidationError(`${metricKey} must use COUNT`);
